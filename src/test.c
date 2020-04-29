@@ -1,4 +1,4 @@
-int a,b,c;
+int a = 1,b,c;
 float m,n;
 int fibo(int a){
     if(a == 1|| a==2){
