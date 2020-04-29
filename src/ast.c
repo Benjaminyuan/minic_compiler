@@ -148,3 +148,20 @@ void display(struct ASTNode *T,int indent)
          }
       }
 }
+void semantic_Analysis0(struct ASTNode *T){
+
+}
+void semantic_Analysis(struct ASTNode *T){}
+
+int getType(const char* type){
+    if(!strcmp(type,"int")){
+        return INT;
+    }else if(!strcmp(type,"float"))
+    {
+        return FLOAT;
+    }else if(!strcmp(type,"char")){
+        return CHAR;
+    } else {
+        return 0;
+    }
+}
