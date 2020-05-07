@@ -56,7 +56,7 @@ ExtDefList: {$$=NULL;}
           | ExtDef ExtDefList {$$=mknode(2,EXT_DEF_LIST,yylineno,$1,$2);}   //每一个EXTDEFLIST的结点，其第1棵子树对应一个外部变量声明或函数
           ; 
 ExtDef:   Specifier ExtDecList SEMI   {$$=mknode(2,EXT_VAR_DEF,yylineno,$1,$2);}   //该结点对应一个外部变量声明
-         | Specifier ArrayDec SEMI {$$=mknode(2,ARRAY_DEF,yylineno,$1,$2);}//数组定义
+         | Specifier ArrayDec SEMI {$$=mknode(2,ARRAY_DEF,yylineno,$1,$2);}//外部数组定义
          |Specifier FuncDec CompSt    {$$=mknode(3,FUNC_DEF,yylineno,$1,$2,$3);}         //该结点对应一个函数定义
          | error SEMI   {$$=NULL;}
          ;
@@ -96,11 +96,14 @@ DefList: {$$=NULL; }
         | Def DefList {$$=mknode(2,DEF_LIST,yylineno,$1,$2);}
         | error SEMI   {$$=NULL;}
         ;
+//局部变量定义        
 Def:    Specifier DecList SEMI {$$=mknode(2,VAR_DEF,yylineno,$1,$2);}
+        | Specifier ArrayDec SEMI {$$=mknode(2,ARRAY_DEF,yylineno,$1,$2);}
         ;
 DecList: Dec  {$$=mknode(1,DEC_LIST,yylineno,$1);}
        | Dec COMMA DecList  {$$=mknode(2,DEC_LIST,yylineno,$1,$3);}
 	   ;
+//申明
 Dec:     VarDec  {$$=$1;}
        | VarDec ASSIGNOP Exp  {$$=mknode(2,ASSIGNOP,yylineno,$1,$3);strcpy($$->type_id,"ASSIGNOP");}
        ;

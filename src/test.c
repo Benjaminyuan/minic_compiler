@@ -12,9 +12,9 @@ int fibo(int a){
 /*aaa*/
 int main() {
     int m,n,i;
+    int a[10];
     m = read();
     i =1;
-    // int a[10];
     while (i<= m)
     {
         n = fibo(i);
