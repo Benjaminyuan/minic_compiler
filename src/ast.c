@@ -33,7 +33,15 @@ void display(struct ASTNode *T,int indent)
                         break;
 	case TYPE:          printf("%*c类型： %s\n",indent,' ',T->type_id);
                         break;
-    case EXT_DEC_LIST:  display(T->ptr[0],indent);     //依次显示外部变量名，
+    // case EXT_DEC_LIST:  display(T->ptr[0],indent);     //依次显示外部变量名，
+    //                     display(T->ptr[1],indent);     //后续还有相同的，仅显示语法树此处理代码可以和类似代码合并
+    //                     break;
+    case EXT_DEC_LIST:  if(T->ptr[0]->kind == ASSIGNOP){
+                            printf("%*c %s ASSIGNOP\n ",indent,' ',T0->ptr[0]->ptr[0]->type_id);
+                            display(T0->ptr[0]->ptr[1],indent+strlen(T0->ptr[0]->ptr[0]->type_id));        //显示初始化表达式
+                        }else{
+                            display(T->ptr[0],indent);
+                        }   
                         display(T->ptr[1],indent);     //后续还有相同的，仅显示语法树此处理代码可以和类似代码合并
                         break;
 	case FUNC_DEF:      printf("%*c函数定义：(%d)\n",indent,' ',T->pos);
@@ -127,6 +135,8 @@ void display(struct ASTNode *T,int indent)
 	case INT:	        printf("%*cINT：%d\n",indent,' ',T->type_int);
                         break;
 	case FLOAT:	        printf("%*cFLAOT：%f\n",indent,' ',T->type_float);
+                        break;
+    case CHAR:          printf("%*cCHAR：%c\n",indent,' ',T->type_char);
                         break;
 	case ASSIGNOP:
 	case AND:
