@@ -22,19 +22,23 @@ typedef union {
 id   [A-Za-z][A-Za-z0-9]*  
 int    [0-9]+
 float  ([0-9]*\.[0-9]+)|([0-9]+\.)
+char   \'.\'
 /*注释行匹配*/
 annotation  (\/\/(\s|.)*?)|(\/\*(\s|.)*?\*\/)
 /*规则部分： 正则表达式 动作*/
 %%
-{int}        {yylval.type_int=atoi(yytext); return INT;}
-{float}      {yylval.type_float=atof(yytext); return FLOAT;}
-"int"        {strcpy(yylval.type_id,  yytext);return TYPE;}
-"float"      {strcpy(yylval.type_id,  yytext);return TYPE;}
+{int}        {yylval.type_int=atoi(yytext);printf("(INT,%d)\n",yylval.type_int); return INT;}
+{float}      {yylval.type_float=atof(yytext);printf("(INT,%f)\n",yylval.type_float); return FLOAT;}
+{char}      {yylval.type_char=yytext[1];printf("(CHAR,%c)\n",yylval.type_char); return CHAR;}
+"int"        {strcpy(yylval.type_id,  yytext);printf("(TYPE,%s)\n",yylval.type_id);return TYPE;}
+"float"      {strcpy(yylval.type_id,  yytext);printf("(TYPE,%s)\n",yylval.type_id);return TYPE;}
+"char"       {strcpy(yylval.type_id,  yytext);printf("(TYPE,%s)\n",yylval.type_id);return TYPE;}
 
 "return"     {return RETURN;}
 "if"         {return IF;}
 "else"       {return ELSE;}
 "while"      {return WHILE;}
+"for"		 {return FOR;}
 {annotation} {}
 {id}       {strcpy(yylval.type_id,  yytext); return ID;/*由于关键字的形式也符合标识符的规则，所以把关键字的处理全部放在标识符的前面，优先识别*/}
 ";"			{return SEMI;}
@@ -45,11 +49,17 @@ annotation  (\/\/(\s|.)*?)|(\/\*(\s|.)*?\*\/)
 "-"			{return MINUS;}
 "*"			{return STAR;}
 "/"			{return DIV;}
+"+="		{return COMADD;}
+"-="		{return COMSUB;}
+"--"		{return AUTOSUB;}
+"++"		{return AUTOADD;}
 "&&"         {return AND;}
 "||"            {return OR;}
 "!"			{return NOT;}
 "("			{return LP;}
 ")"			{return RP;}
+"["			{return LB;}
+"]"			{return RB;}
 "{"			{return LC;}
 "}"			{return RC;}
 [\n]           {yycolumn=1;}   

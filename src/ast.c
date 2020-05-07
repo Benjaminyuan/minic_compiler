@@ -33,7 +33,16 @@ void display(struct ASTNode *T,int indent)
                         break;
 	case TYPE:          printf("%*c类型： %s\n",indent,' ',T->type_id);
                         break;
-    case EXT_DEC_LIST:  display(T->ptr[0],indent);     //依次显示外部变量名，
+    // case EXT_DEC_LIST:  display(T->ptr[0],indent);     //依次显示外部变量名，
+    //                     display(T->ptr[1],indent);     //后续还有相同的，仅显示语法树此处理代码可以和类似代码合并
+    //                     break;
+    case EXT_DEC_LIST:  if(T->ptr[0]->kind == ASSIGNOP){
+                            display(T->ptr[0]->ptr[0],indent);
+                            printf("%*cASSIGNOP\n ",indent+1,' ');
+                            display(T->ptr[0]->ptr[1],indent);
+                        }else{
+                            display(T->ptr[0],indent);
+                        }   
                         display(T->ptr[1],indent);     //后续还有相同的，仅显示语法树此处理代码可以和类似代码合并
                         break;
 	case FUNC_DEF:      printf("%*c函数定义：(%d)\n",indent,' ',T->pos);
@@ -41,12 +50,20 @@ void display(struct ASTNode *T,int indent)
                         display(T->ptr[1],indent+3);      //显示函数名和参数
                         display(T->ptr[2],indent+3);      //显示函数体
                         break;
+    case ARRAY_DEF:     printf("%*c数组定义：(%d)\n",indent,' ',T->pos);
+                        display(T->ptr[0],indent+3);
+                        display(T->ptr[1],indent+3);
+                        break;
 	case FUNC_DEC:      printf("%*c函数名：%s\n",indent,' ',T->type_id);
                         if (T->ptr[0]) {
                                 printf("%*c函数形参：\n",indent,' ');
                                 display(T->ptr[0],indent+3);  //显示函数参数列表
                                 }
                         else printf("%*c无参函数\n",indent+3,' ');
+                        break;
+    case ARRAY_DEC:     printf("%*c%s%s\n",indent,' ',"数组名：",T->type_id);
+                        printf("%*c%s\n",indent,' ',"数组大小：");
+                        display(T->ptr[0],indent+5);
                         break;
 	case PARAM_LIST:    display(T->ptr[0],indent);     //依次显示全部参数类型和名称，
                         display(T->ptr[1],indent);
@@ -108,13 +125,23 @@ void display(struct ASTNode *T,int indent)
                             T0=T0->ptr[1];
                             }
                         break;
+    case FOR:           printf("%*cfor-循环：(%d)\n",indent,' ',T->pos);
+                        printf("%*c循环条件：(%d)\n",indent+3,' ',T->pos);
+                        display(T->ptr[0],indent+3);
+                        printf("%*c循环体：\n",indent+3,' ');
+                        display(T->ptr[1],indent+5);
+                        break;
 	case ID:	        printf("%*cID： %s\n",indent,' ',T->type_id);
                         break;
 	case INT:	        printf("%*cINT：%d\n",indent,' ',T->type_int);
                         break;
 	case FLOAT:	        printf("%*cFLAOT：%f\n",indent,' ',T->type_float);
                         break;
+    case CHAR:          printf("%*cCHAR：%c\n",indent,' ',T->type_char);
+                        break;
 	case ASSIGNOP:
+    case COMADD:
+    case COMSUB:
 	case AND:
 	case OR:
 	case RELOP:
@@ -127,6 +154,10 @@ void display(struct ASTNode *T,int indent)
                     display(T->ptr[1],indent+3);
                     break;
 	case NOT:
+    case AUTOADD_L:
+    case AUTOADD_R:
+    case AUTOSUB_L:
+    case AUTOSUB_R:
 	case UMINUS:    printf("%*c%s\n",indent,' ',T->type_id);
                     display(T->ptr[0],indent+3);
                     break;
@@ -147,4 +178,21 @@ void display(struct ASTNode *T,int indent)
                     break;
          }
       }
+}
+void semantic_Analysis0(struct ASTNode *T){
+
+}
+void semantic_Analysis(struct ASTNode *T){}
+
+int getType(const char* type){
+    if(!strcmp(type,"int")){
+        return INT;
+    }else if(!strcmp(type,"float"))
+    {
+        return FLOAT;
+    }else if(!strcmp(type,"char")){
+        return CHAR;
+    } else {
+        return 0;
+    }
 }

@@ -32,6 +32,7 @@ struct ASTNode {
 	union {
 		  char type_id[33];             //由标识符生成的叶结点
 		  int type_int;                 //由整常数生成的叶结点
+          char type_char;
 		  float type_float;               //由浮点常数生成的叶结点
 	      };
     struct ASTNode *ptr[4];         //由kind确定有多少棵子树
@@ -76,4 +77,4 @@ void semantic_Analysis(struct ASTNode *T);
 void boolExp(struct ASTNode *T);
 void Exp(struct ASTNode *T);
 void objectCode(struct codenode *head);
-
+int getType(const char* type);

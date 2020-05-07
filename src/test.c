@@ -1,4 +1,6 @@
-int a = 1,b,c;
+int a = 1, b,c;
+char d;
+int a[10];
 float m,n;
 int fibo(int a){
     if(a == 1|| a==2){
@@ -9,14 +11,23 @@ int fibo(int a){
 //this is  
 /*aaa*/
 int main() {
-    int m,n,i;
+    int m = 0,n,i;
+    char d;
+    int a[10];
     m = read();
     i =1;
+    i +=1; 
+    d = '1';
+
     while (i<= m)
     {
         n = fibo(i);
         write(n);
         i = i+1;
     }
+    for(i<8){
+        i++;
+    }
+    i++;
     return 1;
 }
