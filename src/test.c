@@ -22,7 +22,8 @@ int main() {
         i = i+1;
     }
     for(i<8){
-        i = i+1;
+        i++;
     }
+    i++;
     return 1;
 }

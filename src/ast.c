@@ -141,6 +141,10 @@ void display(struct ASTNode *T,int indent)
                     display(T->ptr[1],indent+3);
                     break;
 	case NOT:
+    case AUTOADD_L:
+    case AUTOADD_R:
+    case AUTOSUB_L:
+    case AUTOSUB_R:
 	case UMINUS:    printf("%*c%s\n",indent,' ',T->type_id);
                     display(T->ptr[0],indent+3);
                     break;
