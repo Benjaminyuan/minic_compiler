@@ -37,8 +37,9 @@ void display(struct ASTNode *T,int indent)
     //                     display(T->ptr[1],indent);     //后续还有相同的，仅显示语法树此处理代码可以和类似代码合并
     //                     break;
     case EXT_DEC_LIST:  if(T->ptr[0]->kind == ASSIGNOP){
-                            printf("%*c %s ASSIGNOP\n ",indent,' ',T0->ptr[0]->ptr[0]->type_id);
-                            display(T0->ptr[0]->ptr[1],indent+strlen(T0->ptr[0]->ptr[0]->type_id));        //显示初始化表达式
+                            display(T->ptr[0]->ptr[0],indent);
+                            printf("%*cASSIGNOP\n ",indent+1,' ');
+                            display(T->ptr[0]->ptr[1],indent);
                         }else{
                             display(T->ptr[0],indent);
                         }   
