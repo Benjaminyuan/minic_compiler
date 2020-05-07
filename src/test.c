@@ -21,5 +21,8 @@ int main() {
         write(n);
         i = i+1;
     }
+    for(i<8){
+        i = i+1;
+    }
     return 1;
 }

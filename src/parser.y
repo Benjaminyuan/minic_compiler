@@ -91,6 +91,7 @@ Stmt:   Exp SEMI    {$$=mknode(1,EXP_STMT,yylineno,$1);}
       | IF LP Exp RP Stmt %prec LOWER_THEN_ELSE   {$$=mknode(2,IF_THEN,yylineno,$3,$5);}
       | IF LP Exp RP Stmt ELSE Stmt   {$$=mknode(3,IF_THEN_ELSE,yylineno,$3,$5,$7);}
       | WHILE LP Exp RP Stmt {$$=mknode(2,WHILE,yylineno,$3,$5);}
+      | FOR LP Exp RP Stmt {$$=mknode(2,FOR,yylineno,$3,$5);}
       ;
 DefList: {$$=NULL; }
         | Def DefList {$$=mknode(2,DEF_LIST,yylineno,$1,$2);}

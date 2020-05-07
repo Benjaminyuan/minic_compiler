@@ -116,6 +116,12 @@ void display(struct ASTNode *T,int indent)
                             T0=T0->ptr[1];
                             }
                         break;
+    case FOR:           printf("%*cfor-循环：(%d)\n",indent,' ',T->pos);
+                        printf("%*c循环条件：(%d)\n",indent+3,' ',T->pos);
+                        display(T->ptr[0],indent+3);
+                        printf("%*c循环体：\n",indent+3,' ');
+                        display(T->ptr[1],indent+5);
+                        break;
 	case ID:	        printf("%*cID： %s\n",indent,' ',T->type_id);
                         break;
 	case INT:	        printf("%*cINT：%d\n",indent,' ',T->type_int);
