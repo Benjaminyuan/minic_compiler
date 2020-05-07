@@ -21,8 +21,8 @@ void display(struct ASTNode *,int);
 	struct ASTNode *ptr;
 };
 
-//  %type 定义非终结符的语义值类型 CaseStmtList0 CaseStmtList
-%type  <ptr> program ExtDefList ExtDef  Specifier ExtDecList FuncDec CompSt VarList VarDec ParamDec Stmt StmList DefList Def DecList Dec Exp Args ArrayDec ExtDec
+//  %type 定义非终结符的语义值类型 CaseStmtList0 CaseStmtList PreCondition ForList
+%type  <ptr> program ExtDefList ExtDef  Specifier ExtDecList FuncDec CompSt VarList VarDec ParamDec Stmt StmList DefList Def DecList Dec Exp Args ArrayDec ExtDec PreCondition ForList
 
 //% token 定义终结符的语义值类型
 %token <type_int> INT              /*指定INT的语义值是type_int，有词法分析得到的数值*/
@@ -31,9 +31,9 @@ void display(struct ASTNode *,int);
 %token <type_float> FLOAT          /*指定ID的语义值是type_id，有词法分析得到的标识符字符串*/
 
 %token DPLUS LP RP LC RC  LB RB SEMI COMMA    /*用bison对该文件编译时，带参数-d，生成的.tab.h中给这些单词进行编码，可在lex.l中包含parser.tab.h使用这些单词种类码*/
-%token PLUS MINUS STAR DIV ASSIGNOP AND OR NOT IF ELSE WHILE RETURN FOR SWITCH CASE COLON DEFAULT AUTOADD AUTOSUB COMADD COMSUB
-/*以下为接在上述token后依次编码的枚举常量，作为AST结点类型标记*/
-%token EXT_DEF_LIST EXT_VAR_DEF FUNC_DEF ARRAY_DEF FUNC_DEC ARRAY_DEC EXT_DEC_LIST PARAM_LIST PARAM_DEC VAR_DEF DEC_LIST DEF_LIST COMP_STM STM_LIST EXP_STMT IF_THEN IF_THEN_ELSE AUTOADD_L AUTOSUB_L AUTOADD_R AUTOSUB_R
+%token PLUS MINUS STAR DIV ASSIGNOP AND OR NOT IF ELSE WHILE RETURN FOR SWITCH CASE COLON DEFAULT AUTOADD AUTOSUB COMADD COMSUB 
+/*以下为接在上述token后依次编码的枚举常量，作为AST结点类型标记 */
+%token EXT_DEF_LIST EXT_VAR_DEF FUNC_DEF ARRAY_DEF FUNC_DEC ARRAY_DEC EXT_DEC_LIST PARAM_LIST PARAM_DEC VAR_DEF DEC_LIST DEF_LIST COMP_STM STM_LIST EXP_STMT IF_THEN IF_THEN_ELSE AUTOADD_L AUTOSUB_L AUTOADD_R AUTOSUB_R  PRE_CONDITION FOR_LIST 
 %token FUNC_CALL ARGS FUNCTION PARAM ARG CALL LABEL GOTO JLT JLE JGT JGE EQ NEQ
 
 %left COMADD COMSUB
@@ -93,8 +93,12 @@ Stmt:   Exp SEMI    {$$=mknode(1,EXP_STMT,yylineno,$1);}
       | IF LP Exp RP Stmt %prec LOWER_THEN_ELSE   {$$=mknode(2,IF_THEN,yylineno,$3,$5);}
       | IF LP Exp RP Stmt ELSE Stmt   {$$=mknode(3,IF_THEN_ELSE,yylineno,$3,$5,$7);}
       | WHILE LP Exp RP Stmt {$$=mknode(2,WHILE,yylineno,$3,$5);}
-      | FOR LP Exp RP Stmt {$$=mknode(2,FOR,yylineno,$3,$5);}
+      | FOR LP ForList RP Stmt {$$=mknode(2,FOR,yylineno,$3,$5);}
       ;
+PreCondition:  DecList {$$=mknode(1,PRE_CONDITION,yylineno,$1);}
+;
+ForList:  PreCondition SEMI Exp SEMI Exp  {$$=mknode(3,FOR_LIST,yylineno,$1,$3,$5);}
+;
 DefList: {$$=NULL; }
         | Def DefList {$$=mknode(2,DEF_LIST,yylineno,$1,$2);}
         | error SEMI   {$$=NULL;}
@@ -128,7 +132,7 @@ Exp:    Exp ASSIGNOP Exp {$$=mknode(2,ASSIGNOP,yylineno,$1,$3);strcpy($$->type_i
       | Exp AUTOADD  {$$=mknode(1,AUTOADD_R,yylineno,$1);strcpy($$->type_id,"AUTOADD_R");}
       | Exp AUTOSUB  {$$=mknode(1,AUTOSUB_R,yylineno,$1);strcpy($$->type_id,"AUTOSUB_R");}
       | DPLUS  Exp      {$$=mknode(1,DPLUS,yylineno,$2);strcpy($$->type_id,"DPLUS");}
-      |   Exp DPLUS      {$$=mknode(1,DPLUS,yylineno,$1);strcpy($$->type_id,"DPLUS");}
+      | Exp DPLUS      {$$=mknode(1,DPLUS,yylineno,$1);strcpy($$->type_id,"DPLUS");}
       | ID LP Args RP {$$=mknode(1,FUNC_CALL,yylineno,$3);strcpy($$->type_id,$1);}
       | ID LP RP      {$$=mknode(0,FUNC_CALL,yylineno);strcpy($$->type_id,$1);}
       | ID            {$$=mknode(0,ID,yylineno);strcpy($$->type_id,$1);}
