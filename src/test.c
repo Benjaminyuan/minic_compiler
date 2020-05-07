@@ -16,6 +16,7 @@ int main() {
     int a[10];
     m = read();
     i =1;
+    i +=1; 
     d = '1';
 
     while (i<= m)

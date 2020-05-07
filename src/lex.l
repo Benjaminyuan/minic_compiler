@@ -49,6 +49,8 @@ annotation  (\/\/(\s|.)*?)|(\/\*(\s|.)*?\*\/)
 "-"			{return MINUS;}
 "*"			{return STAR;}
 "/"			{return DIV;}
+"+="		{return COMADD;}
+"-="		{return COMSUB;}
 "--"		{return AUTOSUB;}
 "++"		{return AUTOADD;}
 "&&"         {return AND;}

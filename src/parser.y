@@ -31,11 +31,12 @@ void display(struct ASTNode *,int);
 %token <type_float> FLOAT          /*指定ID的语义值是type_id，有词法分析得到的标识符字符串*/
 
 %token DPLUS LP RP LC RC  LB RB SEMI COMMA    /*用bison对该文件编译时，带参数-d，生成的.tab.h中给这些单词进行编码，可在lex.l中包含parser.tab.h使用这些单词种类码*/
-%token PLUS MINUS STAR DIV ASSIGNOP AND OR NOT IF ELSE WHILE RETURN FOR SWITCH CASE COLON DEFAULT AUTOADD AUTOSUB 
+%token PLUS MINUS STAR DIV ASSIGNOP AND OR NOT IF ELSE WHILE RETURN FOR SWITCH CASE COLON DEFAULT AUTOADD AUTOSUB COMADD COMSUB
 /*以下为接在上述token后依次编码的枚举常量，作为AST结点类型标记*/
 %token EXT_DEF_LIST EXT_VAR_DEF FUNC_DEF ARRAY_DEF FUNC_DEC ARRAY_DEC EXT_DEC_LIST PARAM_LIST PARAM_DEC VAR_DEF DEC_LIST DEF_LIST COMP_STM STM_LIST EXP_STMT IF_THEN IF_THEN_ELSE AUTOADD_L AUTOSUB_L AUTOADD_R AUTOSUB_R
 %token FUNC_CALL ARGS FUNCTION PARAM ARG CALL LABEL GOTO JLT JLE JGT JGE EQ NEQ
 
+%left COMADD COMSUB
 %left ASSIGNOP
 %left OR
 %left AND
@@ -117,6 +118,8 @@ Exp:    Exp ASSIGNOP Exp {$$=mknode(2,ASSIGNOP,yylineno,$1,$3);strcpy($$->type_i
       | Exp MINUS Exp {$$=mknode(2,MINUS,yylineno,$1,$3);strcpy($$->type_id,"MINUS");}
       | Exp STAR Exp  {$$=mknode(2,STAR,yylineno,$1,$3);strcpy($$->type_id,"STAR");}
       | Exp DIV Exp   {$$=mknode(2,DIV,yylineno,$1,$3);strcpy($$->type_id,"DIV");}
+      | Exp COMADD Exp   {$$=mknode(2,COMADD,yylineno,$1,$3);strcpy($$->type_id,"COMADD");}
+      | Exp COMSUB Exp   {$$=mknode(2,COMSUB,yylineno,$1,$3);strcpy($$->type_id,"COMSUB");}
       | LP Exp RP     {$$=$2;}
       | MINUS Exp %prec UMINUS   {$$=mknode(1,UMINUS,yylineno,$2);strcpy($$->type_id,"UMINUS");}
       | NOT Exp       {$$=mknode(1,NOT,yylineno,$2);strcpy($$->type_id,"NOT");}

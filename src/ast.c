@@ -140,6 +140,8 @@ void display(struct ASTNode *T,int indent)
     case CHAR:          printf("%*cCHAR：%c\n",indent,' ',T->type_char);
                         break;
 	case ASSIGNOP:
+    case COMADD:
+    case COMSUB:
 	case AND:
 	case OR:
 	case RELOP:
