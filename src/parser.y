@@ -22,7 +22,7 @@ void display(struct ASTNode *,int);
 };
 
 //  %type 定义非终结符的语义值类型 CaseStmtList0 CaseStmtList
-%type  <ptr> program ExtDefList ExtDef  Specifier ExtDecList FuncDec CompSt VarList VarDec ParamDec Stmt StmList DefList Def DecList Dec Exp Args 
+%type  <ptr> program ExtDefList ExtDef  Specifier ExtDecList FuncDec CompSt VarList VarDec ParamDec Stmt StmList DefList Def DecList Dec Exp Args ArrayDec
 
 //% token 定义终结符的语义值类型
 %token <type_int> INT              /*指定INT的语义值是type_int，有词法分析得到的数值*/
@@ -30,10 +30,10 @@ void display(struct ASTNode *,int);
 %token <type_id> ID  RELOP TYPE    /*指定ID,RELOP 的语义值是type_id，有词法分析得到的标识符字符串*/
 %token <type_float> FLOAT          /*指定ID的语义值是type_id，有词法分析得到的标识符字符串*/
 
-%token DPLUS LP RP LC RC SEMI COMMA      /*用bison对该文件编译时，带参数-d，生成的.tab.h中给这些单词进行编码，可在lex.l中包含parser.tab.h使用这些单词种类码*/
-%token PLUS MINUS STAR DIV ASSIGNOP AND OR NOT IF ELSE WHILE RETURN FOR SWITCH CASE COLON DEFAULT
+%token DPLUS LP RP LC RC  LB RB SEMI COMMA    /*用bison对该文件编译时，带参数-d，生成的.tab.h中给这些单词进行编码，可在lex.l中包含parser.tab.h使用这些单词种类码*/
+%token PLUS MINUS STAR DIV ASSIGNOP AND OR NOT IF ELSE WHILE RETURN FOR SWITCH CASE COLON DEFAULT 
 /*以下为接在上述token后依次编码的枚举常量，作为AST结点类型标记*/
-%token EXT_DEF_LIST EXT_VAR_DEF FUNC_DEF FUNC_DEC EXT_DEC_LIST PARAM_LIST PARAM_DEC VAR_DEF DEC_LIST DEF_LIST COMP_STM STM_LIST EXP_STMT IF_THEN IF_THEN_ELSE
+%token EXT_DEF_LIST EXT_VAR_DEF FUNC_DEF ARRAY_DEF FUNC_DEC ARRAY_DEC EXT_DEC_LIST PARAM_LIST PARAM_DEC VAR_DEF DEC_LIST DEF_LIST COMP_STM STM_LIST EXP_STMT IF_THEN IF_THEN_ELSE
 %token FUNC_CALL ARGS FUNCTION PARAM ARG CALL LABEL GOTO JLT JLE JGT JGE EQ NEQ
 
 
@@ -54,8 +54,9 @@ program: ExtDefList    { display($1,0); semantic_Analysis0($1);}     //显示语
          ; 
 ExtDefList: {$$=NULL;}
           | ExtDef ExtDefList {$$=mknode(2,EXT_DEF_LIST,yylineno,$1,$2);}   //每一个EXTDEFLIST的结点，其第1棵子树对应一个外部变量声明或函数
-          ;  
+          ; 
 ExtDef:   Specifier ExtDecList SEMI   {$$=mknode(2,EXT_VAR_DEF,yylineno,$1,$2);}   //该结点对应一个外部变量声明
+         | Specifier ArrayDec SEMI {$$=mknode(2,ARRAY_DEF,yylineno,$1,$2);}//数组定义
          |Specifier FuncDec CompSt    {$$=mknode(3,FUNC_DEF,yylineno,$1,$2,$3);}         //该结点对应一个函数定义
          | error SEMI   {$$=NULL;}
          ;
@@ -68,8 +69,10 @@ VarDec:  ID          {$$=mknode(0,ID,yylineno);strcpy($$->type_id,$1);}   //ID�
          ;
 FuncDec: ID LP VarList RP   {$$=mknode(1,FUNC_DEC,yylineno,$3);strcpy($$->type_id,$1);}//函数名存放在$$->type_id
 		|ID LP  RP   {$$=mknode(0,FUNC_DEC,yylineno);strcpy($$->type_id,$1);$$->ptr[0]=NULL;}//函数名存放在$$->type_id
-
-        ;  
+        ; 
+ArrayDec: ID LB Exp RB {$$=mknode(1,ARRAY_DEC,yylineno,$3);strcpy($$->type_id,$1);}
+        | ID LB RB {$$=mknode(0,ARRAY_DEC,yylineno);strcpy($$->type_id,$1);}
+;
 VarList: ParamDec  {$$=mknode(1,PARAM_LIST,yylineno,$1);}
         | ParamDec COMMA  VarList  {$$=mknode(2,PARAM_LIST,yylineno,$1,$3);}
         ;

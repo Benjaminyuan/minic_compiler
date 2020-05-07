@@ -1,5 +1,6 @@
-int a = 123 , b,c;
+int a  , b,c;
 char d;
+int a[10];
 float m,n;
 int fibo(int a){
     if(a == 1|| a==2){
@@ -13,6 +14,7 @@ int main() {
     int m,n,i;
     m = read();
     i =1;
+    // int a[10];
     while (i<= m)
     {
         n = fibo(i);

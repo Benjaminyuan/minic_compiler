@@ -41,12 +41,20 @@ void display(struct ASTNode *T,int indent)
                         display(T->ptr[1],indent+3);      //显示函数名和参数
                         display(T->ptr[2],indent+3);      //显示函数体
                         break;
+    case ARRAY_DEF:     printf("%*c数组定义：(%d)\n",indent,' ',T->pos);
+                        display(T->ptr[0],indent+3);
+                        display(T->ptr[1],indent+3);
+                        break;
 	case FUNC_DEC:      printf("%*c函数名：%s\n",indent,' ',T->type_id);
                         if (T->ptr[0]) {
                                 printf("%*c函数形参：\n",indent,' ');
                                 display(T->ptr[0],indent+3);  //显示函数参数列表
                                 }
                         else printf("%*c无参函数\n",indent+3,' ');
+                        break;
+    case ARRAY_DEC:     printf("%*c%s%s\n",indent,' ',"数组名：",T->type_id);
+                        printf("%*c%s\n",indent,' ',"数组大小：");
+                        display(T->ptr[0],indent+5);
                         break;
 	case PARAM_LIST:    display(T->ptr[0],indent);     //依次显示全部参数类型和名称，
                         display(T->ptr[1],indent);
