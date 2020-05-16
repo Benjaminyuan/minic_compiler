@@ -1,6 +1,6 @@
-int a = 1, b,c;
+int a = 1, b = 2,c;
 char d;
-int a[10];
+int a[10];//目前只支持一维数组支持
 float m,n;
 int fibo(int a){
     if(a == 1|| a==2){
@@ -8,7 +8,7 @@ int fibo(int a){
     }
     return fibo(a-1)+fibo(a-2);
 }
-//this is  
+//this is  annotation  
 /*aaa*/
 int main() {
     int m = 0,n,i;
@@ -16,7 +16,7 @@ int main() {
     int a[10];
     m = read();
     i =1;
-    i +=1; 
+    i += 1; 
     d = '1';
 
     while (i<= m)
@@ -25,6 +25,7 @@ int main() {
         write(n);
         i = i+1;
     }
+    //for循环支持
     for(i = 0;i<8;i++){
         i++;
     }
