@@ -3,6 +3,7 @@ char d;
 int a[10];//目前只支持一维数组支持
 float m,n;
 int fibo(int a){
+    int a ;
     if(a == 1|| a==2){
         return 1;
     }
@@ -17,10 +18,9 @@ int main() {
     char d;
     char d ;
     m = read();
-    i =1;
+    i = 1;
     i += 1; 
     d = '1';
-    j =1 ;
 
     while (i<= m)
     {

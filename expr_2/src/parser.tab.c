@@ -1562,7 +1562,7 @@ yyreduce:
     {
         case 2:
 #line 53 "parser.y" /* yacc.c:1646  */
-    { display((yyvsp[0].ptr),0); semantic_Analysis0((yyvsp[0].ptr));}
+    { display((yyvsp[0].ptr),0); semantic_Analysis((yyvsp[0].ptr),0,0,'V',0);}
 #line 1567 "parser.tab.c" /* yacc.c:1646  */
     break;
 

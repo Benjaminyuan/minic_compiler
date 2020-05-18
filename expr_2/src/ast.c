@@ -1,8 +1,7 @@
 #include "def.h"
 #include "parser.tab.h"
-struct symboltable symtabs = {{0},0};
-struct symbol_scope_begin symbol_index = {{0},0};
-LEV = 0;
+struct symboltable symtabs = {{0}, 0};
+struct symbol_scope_begin symbol_index = {{0}, 0};
 int var_count = 0;
 int func_pos = 0;
 
@@ -21,7 +20,62 @@ struct ASTNode *mknode(int num, int kind, int pos, ...)
     va_end(pArgs);
     return T;
 }
-
+void display_symbol_table(){
+    printf("\t\tSymbol table\t\t\n");
+    printf("%s\t%-8s\t%-10s\t%-10s\t%-10s\t%-10s\n","Index","Name","Level","Type","Flag","Param_num");
+    for(int i=0;i<symtabs.index;i++){
+        printf("%-5d\t",i);
+        printf("%-8s\t",symtabs.symbols[i].name);
+        printf("%-10d\t",symtabs.symbols[i].level);
+        if(symtabs.symbols[i].type == INT){
+            printf("%-10s\t","int");
+        }
+        else if (symtabs.symbols[i].type == FLOAT)
+        {
+            printf("%-10s\t","float");
+        }else
+        {
+            printf("%-10s\t","char");
+        }
+        printf("%-10c\t",symtabs.symbols[i].flag);
+        if(symtabs.symbols[i].flag == 'F'){
+            printf("%-5d\t",symtabs.symbols[i].paramnum);
+        }
+        printf("\n");
+    }
+    printf("---------------\n");
+}
+//添加符号
+void input_symbol(struct ASTNode* T,int type,int level,int flag)
+{
+    //从栈顶开始查找
+    int index = 0;
+    while (index < symtabs.index && symtabs.symbols[index].level != level)
+    {
+        index++;
+    }
+    while (index < symtabs.index)
+    {
+        //重名
+        if (strcmp(T->type_id, symtabs.symbols[index].name) == 0 )
+        {
+            if (type == symtabs.symbols[index].type)
+            {
+                printf("ERROR! line:%d,redeclaration, %s\n", T->pos, T->type_id);
+            }
+            else
+            {
+                printf("ERROR! line:%d, conflicting types for '%s'\n", T->pos, T->type_id);
+            }
+        }
+        index++;
+    }
+    strcpy(symtabs.symbols[symtabs.index].name, T->type_id);
+    symtabs.symbols[symtabs.index].level = level;
+    symtabs.symbols[symtabs.index].type = type;
+    symtabs.symbols[symtabs.index].flag = flag;
+    symtabs.index++;
+}
 void display(struct ASTNode *T, int indent)
 { //对抽象语法树的先根遍历
     int i = 1;
@@ -236,185 +290,211 @@ void display(struct ASTNode *T, int indent)
 void semantic_Analysis0(struct ASTNode *T)
 {
 }
-int semantic_Analysis(struct ASTNode *T,int type,int level,char flag,int use){
-     if (T)
+int semantic_Analysis(struct ASTNode *T, int type, int level, char flag, int use)
+{
+    int index = 0;
+    struct ASTNode *T0 = T;
+
+    if (T)
     {
         switch (T->kind)
         {
         case EXT_DEF_LIST:
-            semantic_Analysis(T->ptr[0],type,level,flag,use); //显示该外部定义（外部变量和函数）列表中的第一个
-            semantic_Analysis(T->ptr[1],type,level,flag,use); //显示该外部定义列表中的其它外部定义
+            //ExtDef
+            semantic_Analysis(T->ptr[0], type, level, flag, use); //显示该外部定义（外部变量和函数）列表中的第一个
+            //ExtDefList
+            semantic_Analysis(T->ptr[1], type, level, flag, use); //显示该外部定义列表中的其它外部定义
             break;
         case EXT_VAR_DEF:
-            type = semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            use = 0;
+            //Specifier
+            type = semantic_Analysis(T->ptr[0], type, level, flag, use);
+            //ExtDecList
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case TYPE:
             return T->type;
         case EXT_DEC_LIST:
             // 下面的都是变量
-            flag = 'V';
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            if (T->ptr[0]->kind == ASSIGNOP)
+            {
+                use = 0;
+                flag = 'V';
+                semantic_Analysis(T->ptr[0]->ptr[0], type, level, flag, use);
+                use = 1;
+                semantic_Analysis(T->ptr[0]->ptr[1], type, level, flag, use);
+            }
+            else
+            {
+                flag = 'V';
+                semantic_Analysis(T->ptr[0], type, level, flag, use);
+
+            }
+            use = 0;
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case FUNC_DEF:
             //Specifier
-            type = semantic_Analysis(T->ptr[0],type,level,flag,use);
+            type = semantic_Analysis(T->ptr[0], type, level, flag, use);
             //FuncDec
             flag = 'F';
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             //CompSt
-            semantic_Analysis(T->ptr[2],type,level,flag,use);
+            semantic_Analysis(T->ptr[2], type, level, flag, use);
             break;
         case ARRAY_DEF:
-            type = semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            //Specifier
+            type = semantic_Analysis(T->ptr[0], type, level, flag, use);
+            flag = 'A';
+            // ArrayDec
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case FUNC_DEC:
             //ID
-            strcpy(symtabs.symbols[symtabs.index].name,T->type_id);
-            symtabs.symbols[symtabs.index].level = level;
-            symtabs.symbols[symtabs.index].type = type;
-            symtabs.symbols[symtabs.index].flag = flag;
-            symtabs.index++;
+            input_symbol(T,type,level,flag);
             // VarList
             var_count = 0;
             flag = 'P';
-            semantic_Analysis(T->ptr[0],type,level+1,flag,use);
+            semantic_Analysis(T->ptr[0], type, level + 1, flag, use);
             //回溯
-            symtabs.symbols[symtabs.index-var_count-1].paramnum = var_count;
+            symtabs.symbols[symtabs.index - var_count - 1].paramnum = var_count;
             break;
         case ARRAY_DEC:
-            //ID
-            strcpy(symtabs.symbols[symtabs.index].name,T->type_id);
-            symtabs.symbols[symtabs.index].level = level;
-            symtabs.symbols[symtabs.index].type = type;
-            //数组
-            symtabs.symbols[symtabs.index].flag = 'A';
-            symtabs.index++;
+            //插入符号表
+            input_symbol(T,type,level,flag);
+            //Exp
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
             break;
         case PARAM_LIST:
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            //ParamDec
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case PARAM_DEC:
             var_count++;
-            type = semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            //Specifier
+            type = semantic_Analysis(T->ptr[0], type, level, flag, use);
+            use = 0;
+            //VarDec
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case EXP_STMT:
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
             break;
         case RETURN:
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
             break;
         case COMP_STM:
             level++;
-            flag = 'V';
+            flag = 'T';
             symbol_index.TX[symbol_index.top++] = symtabs.index;
             //DefList
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
             //StmList
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
+
+            display_symbol_table();
             symtabs.index = symbol_index.TX[--symbol_index.top];
+            display_symbol_table();
             break;
         case STM_LIST:
-            //stmt 
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            // stmtlist 
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            //stmt
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            // stmtlist
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case WHILE:
-             //exp 
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            // stmt 
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            //exp
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            // stmt
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case IF_THEN:
             // Exp
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            // Stmt 
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            // Stmt
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case IF_THEN_ELSE:
             //Exp
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            // Stmt 
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            // Stmt
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             // ELSE Stmt
-            semantic_Analysis(T->ptr[2],type,level,flag,use);
+            semantic_Analysis(T->ptr[2], type, level, flag, use);
             break;
         case DEF_LIST:
             //Def
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            // DefList 
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            // DefList
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case VAR_DEF:
             //Specifier
-            type = semantic_Analysis(T->ptr[0],type,level,flag,use);
+            type = semantic_Analysis(T->ptr[0], type, level, flag, use);
             //DecList
-            flag = 'V';
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            flag = 'T';
+            use = 0;
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case DEC_LIST:
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            T0 = T;
+            while (T0)
+            {
+                if (T0->ptr[0]->kind == ID){
+                    use = 0;
+                    semantic_Analysis(T->ptr[0], type, level, flag, use);
+                }
+                else if (T0->ptr[0]->kind == ASSIGNOP)
+                {
+                    use = 0;
+                    semantic_Analysis(T0->ptr[0]->ptr[0], type, level, flag, use);
+                    use = 1;
+                    semantic_Analysis(T0->ptr[0]->ptr[1], type, level, flag, use);
+                }
+                T0 = T0->ptr[1];
+            }
             break;
         case FOR:
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case FOR_LIST:
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
-            semantic_Analysis(T->ptr[2],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
+            semantic_Analysis(T->ptr[2], type, level, flag, use);
             break;
         case PRE_CONDITION:
-            level++;
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
             break;
         case ID:
-            int index = 0;
-            while (index < symtabs.index &&  symtabs.symbols[index].level != level){
-                index++;
-            }
+            index = 0;
             //定义变量
-            if(use == 0){
-                while(index<symtabs.index){
-                    //重名
-                    if(strcmp(T->type_id,symtabs.symbols[index].name) == 0 ){
-                        if(type == symtabs.symbols[index].type){
-                            printf("ERROR! line:%d,redeclaration, %s",T->pos,T->type_id);
-                        }else{
-                            printf("ERROR! line:%d,conflicting types for '%s'",T->pos,T->type_id);
-                        }
-                    }
-                    index++;
-                }
-                strcpy(symtabs.symbols[symtabs.index].name,T->type_id);
-                symtabs.symbols[symtabs.index].level = level;
-                symtabs.symbols[symtabs.index].type = type;
-                symtabs.symbols[symtabs.index].flag = flag;
-                symtabs.index++;
-            }else{
+            if (use == 0)
+            {
+                input_symbol(T,type,level,flag);
+            }
+            else
+            {
                 //使用变量
-                index--;
-                while (index >=0)
+                index = symtabs.index - 1;
+                while (index >= 0)
                 {
-                    if(strcmp(symtabs.symbols[index].name,T->type_id) == 0 
-                        && (symtabs.symbols[index].flag == 'T' ||  symtabs.symbols[index].flag == 'V')){
+                    if (strcmp(symtabs.symbols[index].name, T->type_id) == 0 && (symtabs.symbols[index].flag == 'T' || symtabs.symbols[index].flag == 'V'))
+                    {
                         return symtabs.symbols[index].type;
                     }
                     index--;
-                }   
-                printf(" %s undeclared variable,line: %d",T->type_id,T->pos);
+                }
+                printf(" %s undeclared variable,line: %d\n", T->type_id, T->pos);
             }
             break;
         case INT:
-            break;
+            return INT;
         case FLOAT:
-            break;
+            return FLOAT;
         case CHAR:
-            break;
+            return CHAR;
         case ASSIGNOP:
         case COMADD:
         case COMSUB:
@@ -426,8 +506,11 @@ int semantic_Analysis(struct ASTNode *T,int type,int level,char flag,int use){
         case STAR:
         case DIV:
             use = 1;
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            semantic_Analysis(T->ptr[1],type,level,flag,use);
+            int type1 = semantic_Analysis(T->ptr[0], type, level, flag, use);
+            int type2 = semantic_Analysis(T->ptr[1], type, level, flag, use);
+            if(type1 == type2){
+                return type1;
+            }
             break;
         case NOT:
         case AUTOADD_L:
@@ -436,48 +519,54 @@ int semantic_Analysis(struct ASTNode *T,int type,int level,char flag,int use){
         case AUTOSUB_R:
         case UMINUS:
             use = 1;
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            break;
+            return semantic_Analysis(T->ptr[0], type, level, flag, use);
         case FUNC_CALL:
-            int index =0;
-            while (index < symtabs.index && symbols[index].level == 0 )
+            // 自上而下而下查找函数
+            while (index < symtabs.index && symtabs.symbols[index].level == 0)
             {
                 //查看是不是有函数定义
-                if(strcmp(symbols[index].name,T->type_id) == 0 ){
-                    if(symtabs.symbols[index].flag != 'F'){
-                        printf("ERROR！line: %d：%s is not a function\n",T->pos,T->type_id);
+                if (strcmp(symtabs.symbols[index].name, T->type_id) == 0)
+                {
+                    if (symtabs.symbols[index].flag != 'F')
+                    {
+                        printf("ERROR！line: %d：%s is not a function\n", T->pos, T->type_id);
                     }
                     break;
                 }
                 index++;
             }
             //没有找到
-            if(index == symtabs.index ||  symbols[index].level != 0){
-                printf("ERROR！line: %d function %s undeclared \n",T->pos,T->type_id);
+            if (index == symtabs.index || symtabs.symbols[index].level != 0)
+            {
+                printf("ERROR！line: %d function %s undeclared \n", T->pos, T->type_id);
                 break;
             }
-            
-            type = symbols[index+1].type;
+
+            type = symtabs.symbols[index + 1].type;
             var_count = 0;
             //定义
-            use = 0;
             func_pos = index;
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
-            if(symbols[index].paramnum != var_count){
-                printf("ERROR! line: %d, %s function require %d param but get %d\n ",T->pos,symbols[index].name,symbols[index].paramnum,var_count);
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            if (symtabs.symbols[index].paramnum != var_count)
+            {
+                printf("ERROR! line: %d, %s function require %d param but get %d\n ", T->pos, symtabs.symbols[index].name, symtabs.symbols[index].paramnum, var_count);
             }
             break;
         case ARGS:
+            use = 1;
             var_count++;
-            int t = semantic_Analysis(T->ptr[0],type,level,flag,use);
-            if(t != type){
-                printf("ERROR! line: %d function call %d th param not match\n",T->pos,var_count);
+            int t = semantic_Analysis(T->ptr[0], type, level, flag, use);
+            if (t != type)
+            {
+                printf("ERROR! line: %d function call %d th param not match\n", T->pos, var_count);
             }
-            type = symbols[func_pos+var_count+1].type;
-            semantic_Analysis(T->ptr[0],type,level,flag,use);
+            type = symtabs.symbols[func_pos + var_count + 1].type;
+            semantic_Analysis(T->ptr[0], type, level, flag, use);
             break;
         }
     }
+    return 0;
+
 }
 
 int getType(const char *type)
