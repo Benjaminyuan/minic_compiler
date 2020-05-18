@@ -48,12 +48,13 @@ void display_symbol_table(){
 //添加符号
 void input_symbol(struct ASTNode* T,int type,int level,int flag)
 {
-    //从栈顶开始查找
-    int index = 0;
-    while (index < symtabs.index && symtabs.symbols[index].level != level)
+    //从栈顶开始查找,找到当前层的启始位置
+    int index = symtabs.index-1;
+    while (index >= 0 && index < symtabs.index && symtabs.symbols[index].level == level)
     {
-        index++;
+        index--;
     }
+    index++;
     while (index < symtabs.index)
     {
         //重名
@@ -438,22 +439,22 @@ int semantic_Analysis(struct ASTNode *T, int type, int level, char flag, int use
             semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case DEC_LIST:
-            T0 = T;
-            while (T0)
+            if (T->ptr[0]->kind == ASSIGNOP)
             {
-                if (T0->ptr[0]->kind == ID){
-                    use = 0;
-                    semantic_Analysis(T->ptr[0], type, level, flag, use);
-                }
-                else if (T0->ptr[0]->kind == ASSIGNOP)
-                {
-                    use = 0;
-                    semantic_Analysis(T0->ptr[0]->ptr[0], type, level, flag, use);
-                    use = 1;
-                    semantic_Analysis(T0->ptr[0]->ptr[1], type, level, flag, use);
-                }
-                T0 = T0->ptr[1];
+                use = 0;
+                flag = 'T';
+                semantic_Analysis(T->ptr[0]->ptr[0], type, level, flag, use);
+                use = 1;
+                semantic_Analysis(T->ptr[0]->ptr[1], type, level, flag, use);
             }
+            else
+            {
+                flag = 'T';
+                semantic_Analysis(T->ptr[0], type, level, flag, use);
+
+            }
+            use = 0;
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         case FOR:
             semantic_Analysis(T->ptr[0], type, level, flag, use);
