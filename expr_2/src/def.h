@@ -78,7 +78,11 @@ struct symbol_scope_begin
 
 struct ASTNode *mknode(int num, int kind, int pos, ...);
 void semantic_Analysis0(struct ASTNode *T);
-void semantic_Analysis(struct ASTNode *T);
+//type 为前一项表达式的类型，返回值为当前表达式的类型
+//level为层次
+// flag为标记即 'P':函数参数,'V':全局变量,'T'局部变量,'F':函数名之类的
+// use表明ID是被使用还是定义
+int semantic_Analysis(struct ASTNode *T,int type,int level,char flag,int use);
 void boolExp(struct ASTNode *T);
 void Exp(struct ASTNode *T);
 void objectCode(struct codenode *head);

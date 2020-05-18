@@ -14,10 +14,13 @@ int main() {
     int m = 0,n,i;
     char d;
     int a[10];
+    char d;
+    char d ;
     m = read();
     i =1;
     i += 1; 
     d = '1';
+    j =1 ;
 
     while (i<= m)
     {
