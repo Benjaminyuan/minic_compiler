@@ -562,7 +562,7 @@ int semantic_Analysis(struct ASTNode *T, int type, int level, char flag, int use
                 printf("ERROR! line: %d function call %d th param not match\n", T->pos, var_count);
             }
             type = symtabs.symbols[func_pos + var_count + 1].type;
-            semantic_Analysis(T->ptr[0], type, level, flag, use);
+            semantic_Analysis(T->ptr[1], type, level, flag, use);
             break;
         }
     }

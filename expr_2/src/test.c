@@ -24,7 +24,7 @@ int main() {
 
     while (i<= m)
     {
-        n = fibo(i);
+        n = fibo(i,n);
         write(n);
         i = i+1;
     }

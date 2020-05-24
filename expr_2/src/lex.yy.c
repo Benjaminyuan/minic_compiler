@@ -916,12 +916,12 @@ YY_RULE_SETUP
 case 14:
 YY_RULE_SETUP
 #line 44 "lex.l"
-{return SEMI;}
+{printf("(SEMI,%s)\n",";");return SEMI;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 45 "lex.l"
-{return COMMA;}
+{printf("(SEMI,%s)\n",",");return COMMA;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
@@ -931,17 +931,17 @@ YY_RULE_SETUP
 case 17:
 YY_RULE_SETUP
 #line 47 "lex.l"
-{return ASSIGNOP;}
+{printf("(ASSIGNOP,%s)\n","=");return ASSIGNOP;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 48 "lex.l"
-{return PLUS;}
+{printf("(PLUS,%s)\n","+");return PLUS;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 49 "lex.l"
-{return MINUS;}
+{printf("(PLUS,%s)\n","-");return MINUS;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP

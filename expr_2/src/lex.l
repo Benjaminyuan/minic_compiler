@@ -41,12 +41,12 @@ annotation  (\/\/(\s|.)*?)|(\/\*(\s|.)*?\*\/)
 "for"		 {return FOR;}
 {annotation} {}
 {id}       {strcpy(yylval.type_id,  yytext);printf("(ID,%s)\n",yylval.type_id); return ID;/*由于关键字的形式也符合标识符的规则，所以把关键字的处理全部放在标识符的前面，优先识别*/}
-";"			{return SEMI;}
-","			{return COMMA;}
+";"			{printf("(SEMI,%s)\n",";");return SEMI;}
+","			{printf("(SEMI,%s)\n",",");return COMMA;}
 ">"|"<"|">="|"<="|"=="|"!=" {strcpy(yylval.type_id, yytext);;return RELOP;}
-"="			{return ASSIGNOP;}
-"+"			{return PLUS;}
-"-"			{return MINUS;}
+"="			{printf("(ASSIGNOP,%s)\n","=");return ASSIGNOP;}
+"+"			{printf("(PLUS,%s)\n","+");return PLUS;}
+"-"			{printf("(PLUS,%s)\n","-");return MINUS;}
 "*"			{return STAR;}
 "/"			{return DIV;}
 "+="		{return COMADD;}
