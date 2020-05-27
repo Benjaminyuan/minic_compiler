@@ -441,7 +441,6 @@ int semantic_Analysis(struct ASTNode *T, int type, int level, char flag, int use
         case DEC_LIST:
             if (T->ptr[0]->kind == ASSIGNOP)
             {
-                use = 0;
                 flag = 'T';
                 semantic_Analysis(T->ptr[0]->ptr[0], type, level, flag, use);
                 use = 1;
@@ -466,6 +465,7 @@ int semantic_Analysis(struct ASTNode *T, int type, int level, char flag, int use
             semantic_Analysis(T->ptr[2], type, level, flag, use);
             break;
         case PRE_CONDITION:
+            use = 1;
             semantic_Analysis(T->ptr[0], type, level, flag, use);
             break;
         case ID:
