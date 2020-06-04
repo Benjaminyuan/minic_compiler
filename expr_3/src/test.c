@@ -1,6 +1,6 @@
-int a = 1, b = 2,c;
+int a , b ,c;
 char d;
-int a[10];//目前只支持一维数组支持
+// int a[10];//目前只支持一维数组支持
 float m,n;
 int fibo(int a){
     int a ;

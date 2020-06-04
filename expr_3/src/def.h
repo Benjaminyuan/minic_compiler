@@ -1,12 +1,12 @@
-#include "stdio.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
 #include "string.h"
 #include "stdarg.h"
 #include "parser.tab.h"
 #define MAXLENGTH 200
 #define DX 3 * sizeof(int) /*活动记录控制信息需要的单元数，这个根据实际系统调整*/
 //以下语法树结点类型、三地址结点类型等定义仅供参考，实验时一定要根据自己的理解来定义
-int LEV; //层号
+int LEV ; //层号
 struct opn
 {
     int kind; //标识联合成员的属性
@@ -82,9 +82,10 @@ void semantic_Analysis0(struct ASTNode *T);
 //level为层次
 // flag为标记即 'P':函数参数,'V':全局变量,'T'局部变量,'F':函数名之类的
 // use表明ID是 1-被使用还是 0-定义
-int semantic_Analysis(struct ASTNode *T,int type,int level,char flag,int use);
+int semantic_Analysis1(struct ASTNode *T,int type,int level,char flag,int use);
 void boolExp(struct ASTNode *T);
 void Exp(struct ASTNode *T);
 void objectCode(struct codenode *head);
 int getType(const char *type);
 void input_symbol(struct ASTNode* T,int type,int level,int flag);
+void semantic_Analysis(struct ASTNode *T);

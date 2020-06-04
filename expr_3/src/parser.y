@@ -50,7 +50,7 @@ void display(struct ASTNode *,int);
 
 %%
 
-program: ExtDefList    { semantic_Analysis($1,0,0,'V',0);}     //显示语法树,语义分析 display($1,0);
+program: ExtDefList    { display($1,0);semantic_Analysis0($1);}     //显示语法树,语义分析 display($1,0);
          ; 
 ExtDefList: {$$=NULL;}
           | ExtDef ExtDefList {$$=mknode(2,EXT_DEF_LIST,yylineno,$1,$2);}   //每一个EXTDEFLIST的结点，其第1棵子树对应一个外部变量声明或函数
