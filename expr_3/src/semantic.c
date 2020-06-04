@@ -410,6 +410,7 @@ void Exp(struct ASTNode *T)
 {
     //处理基本表达式，参考文献[2]p82的思想
     int rtn, num, width;
+    int op;
     struct ASTNode *T0;
     struct opn opn1, opn2, result;
     char temp[10];
@@ -525,6 +526,13 @@ void Exp(struct ASTNode *T)
             break;
         case AUTOADD_L:
         case AUTOADD_R:
+        case AUTOSUB_L:
+        case AUTOSUB_R:
+            if(T->kind == AUTOADD_L || T->kind == AUTOADD_R){
+                op = PLUS;
+            }else{
+                op = MINUS;
+            }
             T->ptr[0]->offset = T->offset;
             // 遍历子树
             Exp(T->ptr[0]);
@@ -541,7 +549,7 @@ void Exp(struct ASTNode *T)
                 T->ptr[1]->type_int = 1;
                 T->ptr[1]->kind = INT;
             }
-            T->ptr[1]->offset = T->offset + T->ptr[0]->width;
+            T->ptr[1]->offset = T->offset + T->ptr[0]->width+4;
             Exp(T->ptr[1]);
 
             if (T->ptr[0]->type == FLOAT)
@@ -574,9 +582,8 @@ void Exp(struct ASTNode *T)
             strcpy(result.id, symbolTable.symbols[T->place].alias);
             result.type = T->type;
             result.offset = symbolTable.symbols[T->place].offset;
-            T->code = merge(3, T->ptr[0]->code, T->ptr[1]->code, genIR(PLUS, opn1, opn2, result));
+            T->code = merge(3, T->ptr[0]->code, T->ptr[1]->code, genIR(op, opn1, opn2, result));
             T->width = T->ptr[0]->width + T->ptr[1]->width + (T->type == INT ? 4 : 8);
-
             break;
         case NOT: //未写完整
             break;
@@ -1148,6 +1155,8 @@ void semantic_Analysis(struct ASTNode *T)
         case FUNC_CALL:
         case AUTOADD_L:
         case AUTOADD_R:
+        case AUTOSUB_L:
+        case AUTOSUB_R:
             Exp(T); //处理基本表达式
             break;
         }

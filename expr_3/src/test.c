@@ -1,7 +1,8 @@
-int a , b ,c;
+int a = 1, b ,c;
 char d;
 // int a[10];//目前只支持一维数组支持
 float m,n;
+
 int fibo(int a){
     int a ;
     if(a == 1|| a==2){
@@ -20,6 +21,8 @@ int main() {
     i += 1; 
     d = '1';
     i++;
+    ++i;
+    i--;
     while (i<= m)
     {
         n = fibo(i);
