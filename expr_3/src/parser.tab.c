@@ -1610,7 +1610,7 @@ yyreduce:
 
   case 10:
 #line 65 "parser.y" /* yacc.c:1646  */
-    {(yyval.ptr)=(yyvsp[0].ptr);}
+    {(yyval.ptr)=mknode(1,EXT_DEC_LIST,yylineno,(yyvsp[0].ptr));}
 #line 1615 "parser.tab.c" /* yacc.c:1646  */
     break;
 

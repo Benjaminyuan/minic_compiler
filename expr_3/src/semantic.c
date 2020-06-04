@@ -23,22 +23,22 @@ void newAlias(char *res)
     static int no = 1;
     char s[10];
     sprintf(res, "v%d", no);
+    no++;
 }
 
 void newLabel(char *res)
 {
     static int no = 1;
     char s[10];
-    itoa(no++, s, 10);
-    strcat0("label", s, res);
+    sprintf(res,"label%d",no);
+    no++;
 }
 
 void newTemp(char *res)
 {
     static int no = 1;
-    char s[10];
-    itoa(no++, s, 10);
-    strcat0("temp", s, res);
+    sprintf(res,"temp%d",no);
+    no++;
 }
 
 //生成一条TAC代码的结点组成的双向循环链表，返回头指针
@@ -216,7 +216,8 @@ int fillSymbolTable(char *name, char *alias, int level, int type, char flag, int
     int i;
     /*符号查重，考虑外部变量声明前有函数定义，
     其形参名还在符号表中，这时的外部变量与前函数的形参重名是允许的*/
-    printf("fillfinish\n");
+    printf("fill------\n");
+    printf("name:%s, alias:%s\n",name,alias);
     for (i = symbolTable.index - 1; i >= 0 && (symbolTable.symbols[i].level == level || level == 0); i--)
     {
         if (level == 0 && symbolTable.symbols[i].level == 1)
@@ -224,7 +225,7 @@ int fillSymbolTable(char *name, char *alias, int level, int type, char flag, int
         if (!strcmp(symbolTable.symbols[i].name, name))
             return -1;
     }
-    printf("fillfinish----\n");
+    printf("fill----finish----\n");
     //填写符号表内容
     strcpy(symbolTable.symbols[symbolTable.index].name, name);
     strcpy(symbolTable.symbols[symbolTable.index].alias, alias);
@@ -523,6 +524,7 @@ void Exp(struct ASTNode *T)
             T->width = T->ptr[0]->width + T->ptr[1]->width + (T->type == INT ? 4 : 8);
             break;
         case AUTOADD_L:
+        case AUTOADD_R:
             T->ptr[0]->offset = T->offset;
             // 遍历子树
             Exp(T->ptr[0]);
@@ -553,9 +555,9 @@ void Exp(struct ASTNode *T)
                 T->width = T->ptr[0]->width + 2;
             }
             //临时变量
-            newTemp(temp);
-            T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset + T->ptr[0]->width + T->ptr[1]->width);
-
+            // newTemp(temp);
+            // T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset + T->ptr[0]->width + T->ptr[1]->width);
+            T->place = T->ptr[0]->place;
             // 表达式结果临时变量；
             opn1.kind = ID;
             strcpy(opn1.id, symbolTable.symbols[T->ptr[0]->place].alias);
@@ -572,7 +574,7 @@ void Exp(struct ASTNode *T)
             strcpy(result.id, symbolTable.symbols[T->place].alias);
             result.type = T->type;
             result.offset = symbolTable.symbols[T->place].offset;
-            T->code = merge(3, T->ptr[0]->code, T->ptr[1]->code, genIR(T->kind, opn1, opn2, result));
+            T->code = merge(3, T->ptr[0]->code, T->ptr[1]->code, genIR(PLUS, opn1, opn2, result));
             T->width = T->ptr[0]->width + T->ptr[1]->width + (T->type == INT ? 4 : 8);
 
             break;
@@ -700,63 +702,55 @@ void ext_var_def(struct ASTNode *T)
     int rtn, num, width;
     struct ASTNode *T0;
     struct opn opn1, opn2, result;
-    char alias[20] = {0};
+    char alias[10];
     T->code = NULL;
-    //EXT_DEC_LIST
-    printf("type: %s", T->ptr[0]->type_id);
-    T->ptr[1]->type = getType(T->ptr[0]->type_id); //确定变量序列各变量类型
-    T0 = T->ptr[1];                                //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
+    T->ptr[1]->type = !strcmp(T->ptr[0]->type_id, "int") ? INT : FLOAT; //确定变量序列各变量类型
+    T0 = T->ptr[1];                                                     //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
     num = 0;
     T0->offset = T->offset;
-
     T->width = 0;
-    T0->width = T->width;
     width = T->ptr[1]->type == INT ? 4 : 8; //一个变量宽度
-    if (T0->kind == EXT_DEC_LIST)
-    {
-        ext_dec_list(T0);
-    }
-    else
-    {
-        //VarDec
-        if (T0->kind == ID)
+    while (T0)
+    { //处理所以DEC_LIST结点
+        num++;
+        T0->ptr[0]->type = T0->type; //类型属性向下传递
+        if (T0->ptr[1])
+            T0->ptr[1]->type = T0->type;
+        T0->ptr[0]->offset = T0->offset; //类型属性向下传递
+        if (T0->ptr[1])
+            T0->ptr[1]->offset = T0->offset + width;
+        if (T0->ptr[0]->kind == ID)
         {
             newAlias(alias);
-            rtn = fillSymbolTable(T0->ptr[0]->type_id,alias,LEV,T0->type,'V',T->offset + T->width);
-            if (rtn == -1)
-            {
-                semantic_error(T0->pos, T0->type_id, "变量重复定义");
-            }
-            else
-            {
-                T0->place = rtn;
-            }
-            T->width += width;
-        }
-        else if(T0->kind == ASSIGNOP)
-        {
-            newAlias(alias);
-            rtn = fillSymbolTable(T0->ptr[0]->type_id, alias, LEV, T0->type, 'V', T0->offset + T0->width); 
-            T0->width += width;
+            
+            rtn = fillSymbolTable(T0->ptr[0]->type_id, alias, LEV, T0->ptr[0]->type, 'V', T->offset + T->width); //此处偏移量未计算，暂时为0
             if (rtn == -1)
                 semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id, "变量重复定义");
             else
+                T0->ptr[0]->place = rtn;
+            T->width += width;
+        }
+        else if (T0->ptr[0]->kind == ASSIGNOP)
+        {
+            newAlias(alias);
+            rtn = fillSymbolTable(T0->ptr[0]->ptr[0]->type_id, alias, LEV, T0->ptr[0]->type, 'V', T->offset + T->width); //此处偏移量未计算，暂时为0
+            if (rtn == -1)
+                semantic_error(T0->ptr[0]->ptr[0]->pos, T0->ptr[0]->ptr[0]->type_id, "变量重复定义");
+            else
             {
                 T0->ptr[0]->place = rtn;
-                T0->ptr[1]->offset = T0->offset + T0->width + width;
-                T0->ptr[1]->width = T0->ptr[0]->width+width;
-                Exp(T0->ptr[1]);
+                T0->ptr[0]->ptr[1]->offset = T->offset + T->width + width;
+                Exp(T0->ptr[0]->ptr[1]);
                 opn1.kind = ID;
-                strcpy(opn1.id, symbolTable.symbols[T0->ptr[1]->place].alias);
+                strcpy(opn1.id, symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
                 result.kind = ID;
                 strcpy(result.id, symbolTable.symbols[T0->ptr[0]->place].alias);
-                T->code = merge(3, T->code, T0->ptr[1]->code, genIR(ASSIGNOP, opn1, opn2, result));
-                T->width += width + T0->ptr[1]->width;
+                T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code, genIR(ASSIGNOP, opn1, opn2, result));
             }
-            // VarDec ASSIGN  Exp
+            T->width += width + T0->ptr[0]->ptr[1]->width;
         }
+        T0 = T0->ptr[1];
     }
-    printf("ext-var-def\n");
 }
 void func_def(struct ASTNode *T)
 {

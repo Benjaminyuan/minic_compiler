@@ -19,7 +19,7 @@ int main() {
     i = 1;
     i += 1; 
     d = '1';
-
+    i++;
     while (i<= m)
     {
         n = fibo(i);

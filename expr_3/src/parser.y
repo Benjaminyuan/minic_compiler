@@ -62,7 +62,7 @@ ExtDef:   Specifier ExtDecList SEMI   {$$=mknode(2,EXT_VAR_DEF,yylineno,$1,$2);}
          ;
 Specifier:  TYPE {$$=mknode(0,TYPE,yylineno);strcpy($$->type_id,$1);$$->type=getType($1);}   
            ;      
-ExtDecList:  ExtDec      {$$=$1;}       /*每一个EXT_DECLIST的结点，其第一棵子树对应一个变量名(ID类型的结点),第二棵子树对应剩下的外部变量名*/
+ExtDecList:  ExtDec      {$$=mknode(1,EXT_DEC_LIST,yylineno,$1);}       /*每一个EXT_DECLIST的结点，其第一棵子树对应一个变量名(ID类型的结点),第二棵子树对应剩下的外部变量名*/
            | ExtDec COMMA ExtDecList {$$=mknode(2,EXT_DEC_LIST,yylineno,$1,$3);}
            ;  
 ExtDec: VarDec {$$=$1;}
