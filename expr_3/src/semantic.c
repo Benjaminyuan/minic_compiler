@@ -190,6 +190,17 @@ void semantic_error(int line, char *msg1, char *msg2)
     //这里可以只收集错误信息，最后一次显示
     printf("在%d行,%s %s\n", line, msg1, msg2);
 }
+char* getTypeStr(int type){
+    static char res[10];
+    if(type == INT){
+        sprintf(res,"INT");
+    }else if(type == FLOAT){
+        sprintf(res,"FLOAT");
+    }else if(type == CHAR){
+        sprintf(res,"CHAR");
+    }
+    return res;
+}
 void prn_symbol()
 { //显示符号表
     int i = 0;
@@ -197,7 +208,8 @@ void prn_symbol()
     for (i = 0; i < symbolTable.index; i++)
         printf("%6s %6s %6d  %6s %4c %6d\n", symbolTable.symbols[i].name,
                symbolTable.symbols[i].alias, symbolTable.symbols[i].level,
-               symbolTable.symbols[i].type == INT ? "int" : "float",
+            //    symbolTable.symbols[i].type == INT ? "int" : "float",
+                getTypeStr(symbolTable.symbols[i].type),
                symbolTable.symbols[i].flag, symbolTable.symbols[i].offset);
 }
 
@@ -556,17 +568,20 @@ void Exp(struct ASTNode *T)
             //建立一个临时变量
             struct ASTNode tmp;
             T->ptr[1] = &tmp;
-            if (T->ptr[0]->type = FLOAT)
+            if (T->ptr[0]->type == FLOAT)
             {
                 T->ptr[1]->type_float = 1;
                 T->ptr[1]->kind = FLOAT;
+                T->ptr[1]->type = FLOAT;
             }
-            else
+            else if (T->ptr[0]->type == INT)
             {
                 T->ptr[1]->type_int = 1;
                 T->ptr[1]->kind = INT;
+                T->ptr[1]->type = INT;
+
             }
-            T->ptr[1]->offset = T->offset + T->ptr[0]->width+4;
+            T->ptr[1]->offset = T->offset + T->ptr[0]->width;
             Exp(T->ptr[1]);
 
             if (T->ptr[0]->type == FLOAT)
@@ -682,7 +697,7 @@ void Exp(struct ASTNode *T)
                 T0 = T0->ptr[1];
             }
             newTemp(temp);
-            T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset + T->width - width);
+            T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset + T->width + width);
             opn1.kind = ID;
             strcpy(opn1.id, T->type_id); //保存函数名
             opn1.offset = rtn;           //这里offset用以保存函数定义入口,在目标代码生成时，能获取相应信息
@@ -729,49 +744,22 @@ void ext_def_list(struct ASTNode *T)
         T->code = merge(2, T->code, T->ptr[1]->code);
     }
 }
-void ext_dec_list(struct ASTNode *T)
-{
-    while (T->kind == EXT_DEC_LIST)
-    {
-        struct ASTNode *T0 = T->ptr[0];
-        T0->width = T->width;
-        T0->type = T->type;
-        if (T0->kind == ASSIGNOP)
-        {
-            // VarDec ASSIGNOP Exp
-        }
-        else
-        {
-            //
-        }
-        /* code */
-        T = T->ptr[1];
-    }
-    if (T->kind == ASSIGNOP)
-    {
-        // VarDec ASSIGNOP Exp
-    }
-    else
-    {
-        //
-    }
-}
-void ExtDec(struct ASTNode *T){}
+
 
 void ext_var_def(struct ASTNode *T)
 {
-    printf("ext-var-def\n");
     int rtn, num, width;
     struct ASTNode *T0;
     struct opn opn1, opn2, result;
     char alias[10];
     T->code = NULL;
-    T->ptr[1]->type = !strcmp(T->ptr[0]->type_id, "int") ? INT : FLOAT; //确定变量序列各变量类型
+    T->ptr[1]->type = getType(T->ptr[0]->type_id);
+    // T->ptr[1]->type = !strcmp(T->ptr[0]->type_id, "int") ? INT : FLOAT; //确定变量序列各变量类型
     T0 = T->ptr[1];                                                     //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
     num = 0;
     T0->offset = T->offset;
     T->width = 0;
-    width = T->ptr[1]->type == INT ? 4 : 8; //一个变量宽度
+    width = getTypeSize(T->ptr[1]->type); //一个变量宽度
     while (T0)
     { //处理所以DEC_LIST结点
         num++;
@@ -784,7 +772,6 @@ void ext_var_def(struct ASTNode *T)
         if (T0->ptr[0]->kind == ID)
         {
             newAlias(alias);
-            
             rtn = fillSymbolTable(T0->ptr[0]->type_id, alias, LEV, T0->ptr[0]->type, 'V', T->offset + T->width); //此处偏移量未计算，暂时为0
             if (rtn == -1)
                 semantic_error(T0->ptr[0]->pos, T0->ptr[0]->type_id, "变量重复定义");

@@ -89,3 +89,4 @@ void objectCode(struct codenode *head);
 int getType(const char *type);
 void input_symbol(struct ASTNode* T,int type,int level,int flag);
 void semantic_Analysis(struct ASTNode *T);
+int getTypeSize(int type);

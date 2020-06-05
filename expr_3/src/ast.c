@@ -589,3 +589,14 @@ int getType(const char *type)
         return 0;
     }
 }
+int getTypeSize(int type){
+    if(type == INT){
+        return 4;
+    }
+    if(type == FLOAT){
+        return 8;
+    }
+    if(type == CHAR){
+        return 1;
+    }
+}

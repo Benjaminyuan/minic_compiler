@@ -1,5 +1,5 @@
 int a = 1, b ,c;
-char d;
+char d,f = 'f';
 // int a[10];//目前只支持一维数组支持
 float m,n;
 
