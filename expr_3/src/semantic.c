@@ -585,6 +585,44 @@ void Exp(struct ASTNode *T)
             T->code = merge(3, T->ptr[0]->code, T->ptr[1]->code, genIR(op, opn1, opn2, result));
             T->width = T->ptr[0]->width + T->ptr[1]->width + (T->type == INT ? 4 : 8);
             break;
+        case COMADD:
+        case COMSUB:
+            if(T->kind == COMSUB ){
+                op = MINUS;
+            }else{
+                op = PLUS;
+            }
+            T->ptr[0]->offset = T->offset;
+            Exp(T->ptr[0]);
+            T->ptr[1]->offset = T->offset + T->ptr[0]->width;
+            Exp(T->ptr[1]);
+            //判断类型
+            if (T->ptr[0]->type == FLOAT || T->ptr[1]->type == FLOAT)
+            {
+                T->type = FLOAT;
+            }else{
+                T->type = INT;
+            }
+            T->place = T->ptr[0]->place;
+            T->width = T->ptr[0]->width + T->ptr[1]->width ;
+
+            opn1.kind = ID;
+            strcpy(opn1.id,symbolTable.symbols[T->ptr[0]->place].alias);
+            opn1.type = T->ptr[0]->type;
+            opn1.offset = symbolTable.symbols[T->ptr[0]->place].offset;
+
+            opn2.kind = ID;
+            strcpy(opn2.id,symbolTable.symbols[T->ptr[1]->place].alias);
+            opn2.type = T->ptr[1]->type;
+            opn2.offset = symbolTable.symbols[T->ptr[1]->place].offset;
+
+            result.kind = ID;
+            strcpy(result.id,symbolTable.symbols[T->place].alias);
+            result.type = T->type;
+            result.offset = symbolTable.symbols[T->place].offset;
+            T->code = merge(3,T->ptr[0]->code,T->ptr[1]->code,genIR(PLUS,opn1,opn2,result));
+            T->width = T->ptr[0]->width + T->ptr[1]->width;
+            break;
         case NOT: //未写完整
             break;
         case UMINUS: //未写完整
@@ -1157,6 +1195,8 @@ void semantic_Analysis(struct ASTNode *T)
         case AUTOADD_R:
         case AUTOSUB_L:
         case AUTOSUB_R:
+        case COMADD:
+        case COMSUB:
             Exp(T); //处理基本表达式
             break;
         }
