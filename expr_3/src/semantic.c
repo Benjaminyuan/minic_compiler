@@ -930,7 +930,6 @@ void comp_stm(struct ASTNode *T)
     }
 #if (DEBUG)
     prn_symbol(); //c在退出一个符合语句前显示的符号表
-    system("pause");
 #endif
     LEV--;                                                         //出复合语句，层号减1
     symbolTable.index = symbol_scope_TX.TX[--symbol_scope_TX.top]; //删除该作用域中的符号
