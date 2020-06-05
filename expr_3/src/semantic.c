@@ -110,12 +110,17 @@ void prnIR(struct codenode *head)
             sprintf(opnstr1, "#%d", h->opn1.const_int);
         if (h->opn1.kind == FLOAT)
             sprintf(opnstr1, "#%f", h->opn1.const_float);
+        if(h->opn1.kind == CHAR)
+            sprintf(opnstr1, "#%c", h->opn1.const_char);
         if (h->opn1.kind == ID)
             sprintf(opnstr1, "%s", h->opn1.id);
+
         if (h->opn2.kind == INT)
             sprintf(opnstr2, "#%d", h->opn2.const_int);
         if (h->opn2.kind == FLOAT)
             sprintf(opnstr2, "#%f", h->opn2.const_float);
+        if(h->opn2.kind == CHAR)
+            sprintf(opnstr1, "#%c", h->opn2.const_char);
         if (h->opn2.kind == ID)
             sprintf(opnstr2, "%s", h->opn2.id);
         sprintf(resultstr, "%s", h->result.id);
@@ -456,6 +461,18 @@ void Exp(struct ASTNode *T)
             result.offset = symbolTable.symbols[T->place].offset;
             T->code = genIR(ASSIGNOP, opn1, opn2, result);
             T->width = 4;
+            break;
+        case CHAR:
+            newTemp(temp);
+            T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset); //为浮点常量生成一个临时变量
+            T->type = CHAR;
+            opn1.kind = CHAR;
+            opn1.const_char = T->type_char;
+            result.kind = ID;
+            strcpy(result.id, symbolTable.symbols[T->place].alias);
+            result.offset = symbolTable.symbols[T->place].offset;
+            T->code = genIR(ASSIGNOP, opn1, opn2, result);
+            T->width = 1;
             break;
         case ASSIGNOP:
             if (T->ptr[0]->kind != ID)
