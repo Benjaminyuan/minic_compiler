@@ -12,14 +12,11 @@ void itoa(int val, char *buff, int base)
 void strcat0(char *s1, char *s2, char *result)
 {
     strcpy(result, s1);
-    printf("sc ---  \n");
     strcat(result, s2);
-    printf("res ---  \n");
 }
 
 void newAlias(char *res)
 {
-    printf("new alias \n");
     static int no = 1;
     char s[10];
     sprintf(res, "v%d", no);
@@ -233,8 +230,6 @@ int fillSymbolTable(char *name, char *alias, int level, int type, char flag, int
     int i;
     /*符号查重，考虑外部变量声明前有函数定义，
     其形参名还在符号表中，这时的外部变量与前函数的形参重名是允许的*/
-    printf("fill------\n");
-    printf("name:%s, alias:%s\n",name,alias);
     for (i = symbolTable.index - 1; i >= 0 && (symbolTable.symbols[i].level == level || level == 0); i--)
     {
         if (level == 0 && symbolTable.symbols[i].level == 1)
@@ -242,7 +237,6 @@ int fillSymbolTable(char *name, char *alias, int level, int type, char flag, int
         if (!strcmp(symbolTable.symbols[i].name, name))
             return -1;
     }
-    printf("fill----finish----\n");
     //填写符号表内容
     strcpy(symbolTable.symbols[symbolTable.index].name, name);
     strcpy(symbolTable.symbols[symbolTable.index].alias, alias);
@@ -272,7 +266,6 @@ void ext_var_list(struct ASTNode *T)
     int rtn, num = 1;
     if (T)
     {
-        printf("ext_var_list\n");
         switch (T->kind)
         {
         case EXT_DEC_LIST:
@@ -697,7 +690,7 @@ void Exp(struct ASTNode *T)
                 T0 = T0->ptr[1];
             }
             newTemp(temp);
-            T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset + T->width + width);
+            T->place = fill_Temp(temp, LEV, T->type, 'T', T->offset + T->width);
             opn1.kind = ID;
             strcpy(opn1.id, T->type_id); //保存函数名
             opn1.offset = rtn;           //这里offset用以保存函数定义入口,在目标代码生成时，能获取相应信息
@@ -729,7 +722,6 @@ void ext_def_list(struct ASTNode *T)
     {
         return;
     }
-    printf("ext-def-list\n");
     if (!T->ptr[0])
     {
         return;
@@ -803,9 +795,8 @@ void ext_var_def(struct ASTNode *T)
 }
 void func_def(struct ASTNode *T)
 {
-    printf("fun-def\n");
     char label[10];
-    T->ptr[1]->type = !strcmp(T->ptr[0]->type_id, "int") ? INT : FLOAT; //获取函数返回类型送到含函数名、参数的结点
+    T->ptr[1]->type = getType(T->ptr[0]->type_id); //获取函数返回类型送到含函数名、参数的结点
     T->width = 0;                                                       //函数的宽度设置为0，不会对外部变量的地址分配产生影响
     T->offset = DX;                                                     //设置局部变量在活动记录中的偏移量初值
     semantic_Analysis(T->ptr[1]);                                       //处理函数名和参数结点部分，这里不考虑用寄存器传递参数
@@ -820,7 +811,6 @@ void func_def(struct ASTNode *T)
 }
 void func_dec(struct ASTNode *T)
 {
-    printf("func-dec\n");
     char alias[10];
     int rtn;
     struct opn opn1, opn2, result;
@@ -874,7 +864,6 @@ void param_list(struct ASTNode *T)
 }
 void param_dec(struct ASTNode *T)
 {
-    printf("param-dec\n");
     char alias[10];
     int rtn;
     struct opn opn1, opn2, result;
@@ -885,7 +874,7 @@ void param_dec(struct ASTNode *T)
     else
         T->ptr[1]->place = rtn;
     T->num = 1;                                //参数个数计算的初始值
-    T->width = T->ptr[0]->type == INT ? 4 : 8; //参数宽度
+    T->width = getTypeSize(T->ptr[0]->type); //参数宽度
     result.kind = ID;
     strcpy(result.id, symbolTable.symbols[rtn].alias);
     result.offset = T->offset;
@@ -893,7 +882,6 @@ void param_dec(struct ASTNode *T)
 }
 void comp_stm(struct ASTNode *T)
 {
-    printf("comp-stm\n");
 
     LEV++;
     //设置层号加1，并且保存该层局部变量在符号表中的起始位置在symbol_scope_TX
@@ -923,7 +911,6 @@ void comp_stm(struct ASTNode *T)
 }
 void def_list(struct ASTNode *T)
 {
-    printf("def-list\n");
     T->code = NULL;
     if (T->ptr[0])
     {
@@ -944,18 +931,18 @@ void def_list(struct ASTNode *T)
 //类似于上面的外部变量EXT_VAR_DEF，换了一种处理方法
 void var_def(struct ASTNode *T)
 {
-    printf("var-def\n");
     int rtn, num, width;
     struct ASTNode *T0;
     struct opn opn1, opn2, result;
     char alias[10];
     T->code = NULL;
-    T->ptr[1]->type = !strcmp(T->ptr[0]->type_id, "int") ? INT : FLOAT; //确定变量序列各变量类型
+    T->ptr[1]->type = getType(T->ptr[0]->type_id); //确定变量序列各变量类型
     T0 = T->ptr[1];                                                     //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
     num = 0;
     T0->offset = T->offset;
     T->width = 0;
-    width = T->ptr[1]->type == INT ? 4 : 8; //一个变量宽度
+    width = getTypeSize(T->ptr[1]->type); //一个变量宽度
+    T->ptr[1]->type = getType(T->ptr[0]->type_id);
     while (T0)
     { //处理所以DEC_LIST结点
         num++;
@@ -1000,7 +987,6 @@ void var_def(struct ASTNode *T)
 void stmt_list(struct ASTNode *T)
 {
     char label[10];
-    printf("stmt-list\n");
     if (!T->ptr[0])
     {
         T->code = NULL;
@@ -1037,7 +1023,6 @@ void stmt_list(struct ASTNode *T)
 void if_then(struct ASTNode *T)
 {
     char label[10];
-    printf("if_then\n");
     newLabel(label);
     strcpy(T->ptr[0]->Etrue, label); //设置条件语句真假转移位置
     strcpy(T->ptr[0]->Efalse, T->Snext);
@@ -1052,7 +1037,6 @@ void if_then(struct ASTNode *T)
 }
 void if_then_else(struct ASTNode *T)
 {
-    printf("if_then_else\n");
     char label[10];
     newLabel(label);
     strcpy(T->ptr[0]->Etrue, label); //设置条件语句真假转移位置
@@ -1075,7 +1059,6 @@ void if_then_else(struct ASTNode *T)
 void while_(struct ASTNode *T)
 {
     char label[10];
-    printf("while_\n");
     newLabel(label);
     strcpy(T->ptr[0]->Etrue, label); //子结点继承属性的计算
     strcpy(T->ptr[0]->Efalse, T->Snext);
@@ -1092,8 +1075,6 @@ void while_(struct ASTNode *T)
 }
 void expr_stmt(struct ASTNode *T)
 {
-    printf("expr_stmt\n");
-
     T->ptr[0]->offset = T->offset;
     semantic_Analysis(T->ptr[0]);
     T->code = T->ptr[0]->code;
@@ -1101,8 +1082,6 @@ void expr_stmt(struct ASTNode *T)
 }
 void return_(struct ASTNode *T)
 {
-    printf("return_\n");
-
     int rtn, num, width;
     struct ASTNode *T0;
     struct opn opn1, opn2, result;
@@ -1110,9 +1089,18 @@ void return_(struct ASTNode *T)
     {
         T->ptr[0]->offset = T->offset;
         Exp(T->ptr[0]);
-
+        num = symbolTable.index;
         /*需要判断返回值类型是否匹配*/
-
+        do{
+            num--;
+        }while (symbolTable.symbols[num].flag != 'F');
+        if (T->ptr[0]->type != symbolTable.symbols[num].type)
+        {
+            semantic_error(T->pos, "返回值类型错误，语义错误", "");
+            T->width = 0;
+            T->code = NULL;
+            return;
+        }
         T->width = T->ptr[0]->width;
         result.kind = ID;
         strcpy(result.id, symbolTable.symbols[T->ptr[0]->place].alias);
@@ -1217,7 +1205,6 @@ void semantic_Analysis0(struct ASTNode *T)
     symbol_scope_TX.TX[0] = 0; //外部变量在符号表中的起始序号为0
     symbol_scope_TX.top = 1;
     T->offset = 0; //外部变量在数据区的偏移量
-    printf("analysis-----\n");
     semantic_Analysis(T);
     prnIR(T->code);
     // objectCode(T->code);

@@ -4,7 +4,6 @@ char d,f = 'f';
 float m,n;
 
 int fibo(int a){
-    int a ;
     if(a == 1|| a==2){
         return 1;
     }
@@ -30,9 +29,9 @@ int main() {
         i = i+1;
     }
     //for循环支持
-    for(i = 0;i<8;i++){
-        i++;
-    }
+    // for(i = 0;i<8;i++){
+    //     i++;
+    // }
     i++;
     return 1;
 }
