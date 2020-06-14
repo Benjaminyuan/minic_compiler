@@ -48,6 +48,7 @@ struct ASTNode
     int offset;                 //偏移量
     int width;                  //占数据字节数
     int num;                    //计数器，可以用来统计形参个数
+    int size;
 };
 
 struct symbol

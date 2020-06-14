@@ -1114,6 +1114,23 @@ void return_(struct ASTNode *T)
         T->code = genIR(RETURN, opn1, opn2, result);
     }
 }
+void array_def(struct ASTNode* T){
+    char alias[10];
+    newAlias(alias);
+    int  rtn = fillSymbolTable(T->ptr[1]->type_id,alias,LEV,T->ptr[0]->type,'A',T->offset+T->width);
+    T->size = T->ptr[1]->ptr[0]->type_int;
+    if(rtn == -1){
+        semantic_error(T->pos, T->type_id,
+                       "变量名重复定义");  
+    }else if (T->size <= 0) {
+        semantic_error(T->pos, T->type_id, "数组大小不能为负值或0");
+      } else {
+        T->place = rtn;
+        T->num = 1;
+        T->width += T->size * getTypeSize(T->ptr[0]->type);
+    }
+
+}
 void semantic_Analysis(struct ASTNode *T)
 { //对抽象语法树的先根遍历,按display的控制结构修改完成符号表管理和语义检查和TAC生成（语句部分）
     int rtn, num, width;
@@ -1164,6 +1181,10 @@ void semantic_Analysis(struct ASTNode *T)
             break;
         case EXP_STMT:
             expr_stmt(T);
+            break;
+        case ARRAY_DEF:
+            printf("array\n");
+            array_def(T);
             break;
         case RETURN:
             return_(T);

@@ -1,4 +1,5 @@
 int a = 1, b ,c;
+int g[10];
 char d,f = 'f';
 // int a[10];//目前只支持一维数组支持
 float m,n;
@@ -14,7 +15,7 @@ int fibo(int a){
 int main() {
     int m = 0,n,i;
     char d;
-    int a[10];
+    // int a[10];
     m = read();
     i = 1;
     i += 1; 
