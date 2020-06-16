@@ -26,7 +26,7 @@ void objectCode(struct codenode *head)
     fprintf(fp, "  la $a0,_ret\n");
     fprintf(fp, "  syscall\n");
     fprintf(fp, "  move $v0,$0\n");
-    fprintf(fp, "  jr $ra\n");
+    fprintf(fp, "  jr $ra\n\n");
     do
     {
         switch (h->op)
@@ -34,12 +34,15 @@ void objectCode(struct codenode *head)
         case ASSIGNOP:
             if (h->opn1.kind == INT)
                 fprintf(fp, "  li $t3, %d\n", h->opn1.const_int);
-            else
+            else if(h->opn1.kind == CHAR){
+                fprintf(fp, "  li $t3, %d\n", h->opn1.const_char);
+            }else
             {
                 fprintf(fp, "  lw $t1, %d($sp)\n", h->opn1.offset);
                 fprintf(fp, "  move $t3, $t1\n");
             }
             fprintf(fp, "  sw $t3, %d($sp)\n", h->result.offset);
+            fprintf(fp, "  \n");
             break;
         case PLUS:
         case MINUS:
@@ -59,6 +62,8 @@ void objectCode(struct codenode *head)
                 fprintf(fp, "  mflo $t3\n");
             }
             fprintf(fp, "  sw $t3, %d($sp)\n", h->result.offset);
+            fprintf(fp, "  \n");
+
             break;
         case FUNCTION:
             fprintf(fp, "\n%s:\n", h->result.id);
@@ -93,6 +98,7 @@ void objectCode(struct codenode *head)
                 fprintf(fp, "  beq $t1,$t2,%s\n", h->result.id);
             else
                 fprintf(fp, "  bne $t1,$t2,%s\n", h->result.id);
+            fprintf(fp, "  \n");
             break;
         case ARG:
             break;
@@ -136,11 +142,13 @@ void objectCode(struct codenode *head)
             fprintf(fp, "  jal %s\n", h->opn1.id);                                       
             fprintf(fp, "  lw $ra,0($sp)\n");                                               
             fprintf(fp, "  addi $sp,$sp,%d\n", symbolTable.symbols[h->opn1.offset].offset); 
-            fprintf(fp, "  sw $v0,%d($sp)\n", h->result.offset);                            
+            fprintf(fp, "  sw $v0,%d($sp)\n", h->result.offset);   
+            fprintf(fp, "  \n");
             break;
         case RETURN:
             fprintf(fp, "  lw $v0,%d($sp)\n", h->result.offset);
             fprintf(fp, "  jr $ra\n");
+            fprintf(fp, "  \n");
             break;
         }
         h = h->next;

@@ -1,4 +1,4 @@
-int a = 1, b ,c;
+int a = 10, b ,c;
 int g[10];
 char d,f = 'f';
 // int a[10];//目前只支持一维数组支持

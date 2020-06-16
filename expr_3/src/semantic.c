@@ -826,6 +826,7 @@ void ext_var_def(struct ASTNode *T)
                 T0->ptr[0]->ptr[1]->offset = T->offset + T->width + width;
                 Exp(T0->ptr[0]->ptr[1]);
                 opn1.kind = ID;
+                opn1.offset = symbolTable.symbols[T0->ptr[0]->ptr[1]->place].offset;
                 strcpy(opn1.id, symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
                 result.kind = ID;
                 strcpy(result.id, symbolTable.symbols[T0->ptr[0]->place].alias);
@@ -1018,6 +1019,7 @@ void var_def(struct ASTNode *T)
                 T0->ptr[0]->ptr[1]->offset = T->offset + T->width + width;
                 Exp(T0->ptr[0]->ptr[1]);
                 opn1.kind = ID;
+                opn1.offset = symbolTable.symbols[T0->ptr[0]->ptr[1]->place].offset;
                 strcpy(opn1.id, symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
                 result.kind = ID;
                 result.offset = symbolTable.symbols[T0->ptr[0]->place].offset;
