@@ -22,13 +22,13 @@ write:
   sw $t3, 4($sp)
   lw $t1, 2($sp)
   move $t3, $t1
-  sw $t3, 38914720($sp)
+  sw $t3, 0($sp)
   lw $t1, 0($sp)
   move $t3, $t1
   sw $t3, 58($sp)
   lw $t1, 4($sp)
   move $t3, $t1
-  sw $t3, 160($sp)
+  sw $t3, 57($sp)
 
 fibo:
   li $t3, 1
@@ -94,9 +94,9 @@ main:
   addi $sp, $sp, -37
   li $t3, 0
   sw $t3, 16($sp)
-  lw $t1, 1448206048($sp)
+  lw $t1, 2035590000($sp)
   move $t3, $t1
-  sw $t3, 260($sp)
+  sw $t3, 12($sp)
   addi $sp, $sp, -4
   sw $ra,0($sp)
   jal read

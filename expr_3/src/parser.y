@@ -57,7 +57,7 @@ ExtDefList: {$$=NULL;}
           ; 
 ExtDef:   Specifier ExtDecList SEMI   {$$=mknode(2,EXT_VAR_DEF,yylineno,$1,$2);}   //该结点对应一个外部变量声明
          | Specifier ArrayDec SEMI {$$=mknode(2,ARRAY_DEF,yylineno,$1,$2);}//外部数组定义
-         |Specifier FuncDec CompSt    {$$=mknode(3,FUNC_DEF,yylineno,$1,$2,$3);}         //该结点对应一个函数定义
+         | Specifier FuncDec CompSt    {$$=mknode(3,FUNC_DEF,yylineno,$1,$2,$3);}         //该结点对应一个函数定义
          | error SEMI   {$$=NULL;}
          ;
 Specifier:  TYPE {$$=mknode(0,TYPE,yylineno);strcpy($$->type_id,$1);$$->type=getType($1);}   

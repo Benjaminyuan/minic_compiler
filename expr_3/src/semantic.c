@@ -124,7 +124,7 @@ void prnIR(struct codenode *head)
         switch (h->op)
         {
         case ASSIGNOP:
-            printf("  %s := %s\n", resultstr, opnstr1);
+            printf("  %s(%d) := %s\n", resultstr,h->result.offset, opnstr1);
             break;
         case PLUS:
         case MINUS:
@@ -492,6 +492,7 @@ void Exp(struct ASTNode *T)
             }
             else
             {
+                T->ptr[0]->offset = T->offset;
                 Exp(T->ptr[0]); //处理左值，例中仅为变量
                 T->ptr[1]->offset = T->offset;
                 Exp(T->ptr[1]);
@@ -828,6 +829,7 @@ void ext_var_def(struct ASTNode *T)
                 strcpy(opn1.id, symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
                 result.kind = ID;
                 strcpy(result.id, symbolTable.symbols[T0->ptr[0]->place].alias);
+                result.offset = symbolTable.symbols[T0->ptr[0]->place].offset;
                 T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code, genIR(ASSIGNOP, opn1, opn2, result));
             }
             T->width += width + T0->ptr[0]->ptr[1]->width;
@@ -1018,6 +1020,7 @@ void var_def(struct ASTNode *T)
                 opn1.kind = ID;
                 strcpy(opn1.id, symbolTable.symbols[T0->ptr[0]->ptr[1]->place].alias);
                 result.kind = ID;
+                result.offset = symbolTable.symbols[T0->ptr[0]->place].offset;
                 strcpy(result.id, symbolTable.symbols[T0->ptr[0]->place].alias);
                 T->code = merge(3, T->code, T0->ptr[0]->ptr[1]->code, genIR(ASSIGNOP, opn1, opn2, result));
             }
@@ -1276,6 +1279,7 @@ void semantic_Analysis0(struct ASTNode *T)
     symbol_scope_TX.top = 1;
     T->offset = 0; //外部变量在数据区的偏移量
     semantic_Analysis(T);
+    // prn_symbol();
     prnIR(T->code);
     objectCode(T->code);
 }
