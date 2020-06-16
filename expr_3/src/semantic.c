@@ -27,14 +27,14 @@ void newLabel(char *res)
 {
     static int no = 1;
     char s[10];
-    sprintf(res,"label%d",no);
+    sprintf(res, "label%d", no);
     no++;
 }
 
 void newTemp(char *res)
 {
     static int no = 1;
-    sprintf(res,"temp%d",no);
+    sprintf(res, "temp%d", no);
     no++;
 }
 
@@ -107,7 +107,7 @@ void prnIR(struct codenode *head)
             sprintf(opnstr1, "#%d", h->opn1.const_int);
         if (h->opn1.kind == FLOAT)
             sprintf(opnstr1, "#%f", h->opn1.const_float);
-        if(h->opn1.kind == CHAR)
+        if (h->opn1.kind == CHAR)
             sprintf(opnstr1, "#%c", h->opn1.const_char);
         if (h->opn1.kind == ID)
             sprintf(opnstr1, "%s", h->opn1.id);
@@ -116,7 +116,7 @@ void prnIR(struct codenode *head)
             sprintf(opnstr2, "#%d", h->opn2.const_int);
         if (h->opn2.kind == FLOAT)
             sprintf(opnstr2, "#%f", h->opn2.const_float);
-        if(h->opn2.kind == CHAR)
+        if (h->opn2.kind == CHAR)
             sprintf(opnstr1, "#%c", h->opn2.const_char);
         if (h->opn2.kind == ID)
             sprintf(opnstr2, "%s", h->opn2.id);
@@ -187,14 +187,20 @@ void semantic_error(int line, char *msg1, char *msg2)
     //这里可以只收集错误信息，最后一次显示
     printf("在%d行,%s %s\n", line, msg1, msg2);
 }
-char* getTypeStr(int type){
+char *getTypeStr(int type)
+{
     static char res[10];
-    if(type == INT){
-        sprintf(res,"INT");
-    }else if(type == FLOAT){
-        sprintf(res,"FLOAT");
-    }else if(type == CHAR){
-        sprintf(res,"CHAR");
+    if (type == INT)
+    {
+        sprintf(res, "INT");
+    }
+    else if (type == FLOAT)
+    {
+        sprintf(res, "FLOAT");
+    }
+    else if (type == CHAR)
+    {
+        sprintf(res, "CHAR");
     }
     return res;
 }
@@ -205,8 +211,8 @@ void prn_symbol()
     for (i = 0; i < symbolTable.index; i++)
         printf("%6s %6s %6d  %6s %4c %6d\n", symbolTable.symbols[i].name,
                symbolTable.symbols[i].alias, symbolTable.symbols[i].level,
-            //    symbolTable.symbols[i].type == INT ? "int" : "float",
-                getTypeStr(symbolTable.symbols[i].type),
+               //    symbolTable.symbols[i].type == INT ? "int" : "float",
+               getTypeStr(symbolTable.symbols[i].type),
                symbolTable.symbols[i].flag, symbolTable.symbols[i].offset);
 }
 
@@ -480,7 +486,7 @@ void Exp(struct ASTNode *T)
             T->width = 1;
             break;
         case ASSIGNOP:
-            if (T->ptr[0]->kind != ID)
+            if (T->ptr[0]->kind != ID && T->ptr[0]->kind != ARRAY_CALL)
             {
                 semantic_error(T->pos, "", "赋值语句需要左值");
             }
@@ -492,6 +498,7 @@ void Exp(struct ASTNode *T)
                 T->type = T->ptr[0]->type;
                 T->width = T->ptr[1]->width;
                 T->code = merge(2, T->ptr[0]->code, T->ptr[1]->code);
+
                 opn1.kind = ID;
                 strcpy(opn1.id, symbolTable.symbols[T->ptr[1]->place].alias); //右值一定是个变量或临时变量
                 opn1.offset = symbolTable.symbols[T->ptr[1]->place].offset;
@@ -550,9 +557,12 @@ void Exp(struct ASTNode *T)
         case AUTOADD_R:
         case AUTOSUB_L:
         case AUTOSUB_R:
-            if(T->kind == AUTOADD_L || T->kind == AUTOADD_R){
+            if (T->kind == AUTOADD_L || T->kind == AUTOADD_R)
+            {
                 op = PLUS;
-            }else{
+            }
+            else
+            {
                 op = MINUS;
             }
             T->ptr[0]->offset = T->offset;
@@ -572,7 +582,6 @@ void Exp(struct ASTNode *T)
                 T->ptr[1]->type_int = 1;
                 T->ptr[1]->kind = INT;
                 T->ptr[1]->type = INT;
-
             }
             T->ptr[1]->offset = T->offset + T->ptr[0]->width;
             Exp(T->ptr[1]);
@@ -612,9 +621,12 @@ void Exp(struct ASTNode *T)
             break;
         case COMADD:
         case COMSUB:
-            if(T->kind == COMSUB ){
+            if (T->kind == COMSUB)
+            {
                 op = MINUS;
-            }else{
+            }
+            else
+            {
                 op = PLUS;
             }
             T->ptr[0]->offset = T->offset;
@@ -625,27 +637,29 @@ void Exp(struct ASTNode *T)
             if (T->ptr[0]->type == FLOAT || T->ptr[1]->type == FLOAT)
             {
                 T->type = FLOAT;
-            }else{
+            }
+            else
+            {
                 T->type = INT;
             }
             T->place = T->ptr[0]->place;
-            T->width = T->ptr[0]->width + T->ptr[1]->width ;
+            T->width = T->ptr[0]->width + T->ptr[1]->width;
 
             opn1.kind = ID;
-            strcpy(opn1.id,symbolTable.symbols[T->ptr[0]->place].alias);
+            strcpy(opn1.id, symbolTable.symbols[T->ptr[0]->place].alias);
             opn1.type = T->ptr[0]->type;
             opn1.offset = symbolTable.symbols[T->ptr[0]->place].offset;
 
             opn2.kind = ID;
-            strcpy(opn2.id,symbolTable.symbols[T->ptr[1]->place].alias);
+            strcpy(opn2.id, symbolTable.symbols[T->ptr[1]->place].alias);
             opn2.type = T->ptr[1]->type;
             opn2.offset = symbolTable.symbols[T->ptr[1]->place].offset;
 
             result.kind = ID;
-            strcpy(result.id,symbolTable.symbols[T->place].alias);
+            strcpy(result.id, symbolTable.symbols[T->place].alias);
             result.type = T->type;
             result.offset = symbolTable.symbols[T->place].offset;
-            T->code = merge(3,T->ptr[0]->code,T->ptr[1]->code,genIR(PLUS,opn1,opn2,result));
+            T->code = merge(3, T->ptr[0]->code, T->ptr[1]->code, genIR(PLUS, opn1, opn2, result));
             T->width = T->ptr[0]->width + T->ptr[1]->width;
             break;
         case NOT: //未写完整
@@ -665,7 +679,7 @@ void Exp(struct ASTNode *T)
                 break;
             }
             T->type = symbolTable.symbols[rtn].type;
-            width = T->type == INT ? 4 : 8; //存放函数返回值的单数字节数
+            width = getTypeSize(T->type); //存放函数返回值的单数字节数
             if (T->ptr[0])
             {
                 T->ptr[0]->offset = T->offset;
@@ -713,6 +727,35 @@ void Exp(struct ASTNode *T)
                 T->code = merge(2, T->code, T->ptr[1]->code);
             }
             break;
+        case ARRAY_CALL:
+            rtn = searchSymbolTable(T->type_id);
+            if (rtn == -1)
+            {
+                semantic_error(T->pos, T->type_id, "数组未定义");
+                break;
+            }
+            else if (symbolTable.symbols[rtn].flag == 'F')
+            {
+                semantic_error(T->pos, T->type_id,"是函数名，类型不匹配"); // 不正确使用函数名
+                break;
+            }
+            else if (symbolTable.symbols[rtn].flag == 'V')
+            {
+                semantic_error(T->pos, T->type_id, "不是数组变量名，不匹配");
+                break;
+            }
+            T->type = symbolTable.symbols[rtn].type;
+            width = getTypeSize(T->type);  //存放函数返回值的单数字节数
+
+            T->ptr[0]->offset = T->offset;
+            Exp(T->ptr[0]);  //处理所有实参表达式求值，及类型
+            T0 = T->ptr[0];
+            if (T0->type != INT) {
+                semantic_error(T->pos, T0->type_id, "数组下标非整型");
+                break;
+            }
+            break;
+            
         }
     }
 }
@@ -737,7 +780,6 @@ void ext_def_list(struct ASTNode *T)
     }
 }
 
-
 void ext_var_def(struct ASTNode *T)
 {
     int rtn, num, width;
@@ -747,7 +789,7 @@ void ext_var_def(struct ASTNode *T)
     T->code = NULL;
     T->ptr[1]->type = getType(T->ptr[0]->type_id);
     // T->ptr[1]->type = !strcmp(T->ptr[0]->type_id, "int") ? INT : FLOAT; //确定变量序列各变量类型
-    T0 = T->ptr[1];                                                     //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
+    T0 = T->ptr[1]; //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
     num = 0;
     T0->offset = T->offset;
     T->width = 0;
@@ -797,10 +839,10 @@ void func_def(struct ASTNode *T)
 {
     char label[10];
     T->ptr[1]->type = getType(T->ptr[0]->type_id); //获取函数返回类型送到含函数名、参数的结点
-    T->width = 0;                                                       //函数的宽度设置为0，不会对外部变量的地址分配产生影响
-    T->offset = DX;                                                     //设置局部变量在活动记录中的偏移量初值
-    semantic_Analysis(T->ptr[1]);                                       //处理函数名和参数结点部分，这里不考虑用寄存器传递参数
-    T->offset += T->ptr[1]->width;                                      //用形参单元宽度修改函数局部变量的起始偏移量
+    T->width = 0;                                  //函数的宽度设置为0，不会对外部变量的地址分配产生影响
+    T->offset = DX;                                //设置局部变量在活动记录中的偏移量初值
+    semantic_Analysis(T->ptr[1]);                  //处理函数名和参数结点部分，这里不考虑用寄存器传递参数
+    T->offset += T->ptr[1]->width;                 //用形参单元宽度修改函数局部变量的起始偏移量
     T->ptr[2]->offset = T->offset;
     newLabel(label);
     strcpy(T->ptr[2]->Snext, label); //函数体语句执行结束后的位置属性
@@ -873,7 +915,7 @@ void param_dec(struct ASTNode *T)
         semantic_error(T->ptr[1]->pos, T->ptr[1]->type_id, "参数名重复定义");
     else
         T->ptr[1]->place = rtn;
-    T->num = 1;                                //参数个数计算的初始值
+    T->num = 1;                              //参数个数计算的初始值
     T->width = getTypeSize(T->ptr[0]->type); //参数宽度
     result.kind = ID;
     strcpy(result.id, symbolTable.symbols[rtn].alias);
@@ -937,7 +979,7 @@ void var_def(struct ASTNode *T)
     char alias[10];
     T->code = NULL;
     T->ptr[1]->type = getType(T->ptr[0]->type_id); //确定变量序列各变量类型
-    T0 = T->ptr[1];                                                     //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
+    T0 = T->ptr[1];                                //T0为变量名列表子树根指针，对ID、ASSIGNOP类结点在登记到符号表，作为局部变量
     num = 0;
     T0->offset = T->offset;
     T->width = 0;
@@ -1091,9 +1133,11 @@ void return_(struct ASTNode *T)
         Exp(T->ptr[0]);
         num = symbolTable.index;
         /*需要判断返回值类型是否匹配*/
-        do{
+        do
+        {
             num--;
-        }while (symbolTable.symbols[num].flag != 'F');
+        } while (symbolTable.symbols[num].flag != 'F');
+
         if (T->ptr[0]->type != symbolTable.symbols[num].type)
         {
             semantic_error(T->pos, "返回值类型错误，语义错误", "");
@@ -1114,22 +1158,27 @@ void return_(struct ASTNode *T)
         T->code = genIR(RETURN, opn1, opn2, result);
     }
 }
-void array_def(struct ASTNode* T){
+void array_def(struct ASTNode *T)
+{
     char alias[10];
     newAlias(alias);
-    int  rtn = fillSymbolTable(T->ptr[1]->type_id,alias,LEV,T->ptr[0]->type,'A',T->offset+T->width);
+    int rtn = fillSymbolTable(T->ptr[1]->type_id, alias, LEV, T->ptr[0]->type, 'A', T->offset + T->width);
     T->size = T->ptr[1]->ptr[0]->type_int;
-    if(rtn == -1){
+    if (rtn == -1)
+    {
         semantic_error(T->pos, T->type_id,
-                       "变量名重复定义");  
-    }else if (T->size <= 0) {
+                       "变量名重复定义");
+    }
+    else if (T->size <= 0)
+    {
         semantic_error(T->pos, T->type_id, "数组大小不能为负值或0");
-      } else {
+    }
+    else
+    {
         T->place = rtn;
         T->num = 1;
         T->width += T->size * getTypeSize(T->ptr[0]->type);
     }
-
 }
 void semantic_Analysis(struct ASTNode *T)
 { //对抽象语法树的先根遍历,按display的控制结构修改完成符号表管理和语义检查和TAC生成（语句部分）
@@ -1228,5 +1277,5 @@ void semantic_Analysis0(struct ASTNode *T)
     T->offset = 0; //外部变量在数据区的偏移量
     semantic_Analysis(T);
     prnIR(T->code);
-    // objectCode(T->code);
+    objectCode(T->code);
 }

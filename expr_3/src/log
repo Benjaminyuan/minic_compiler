@@ -246,7 +246,7 @@ FUNCTION main :
   temp15 := #1
   v14 := temp15
   temp16 := #1
-  v14 := v14 + temp16
+  v14 := v14 + temp16 
   temp17 := #a
   v15 := temp17
   temp18 := #1

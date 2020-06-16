@@ -23,6 +23,7 @@ int main() {
     i++;
     ++i;
     i--;
+    // g[1] = 10;
     while (i<= m)
     {
         n = fibo(i);
